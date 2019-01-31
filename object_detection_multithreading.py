@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from queue import Queue
 from threading import Thread
-from utils.app_utils import FPS, HLSVideoStream, WebcamVideoStream, draw_boxes_and_labels
+from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
 from object_detection.utils import label_map_util
 
 CWD_PATH = os.getcwd()
@@ -27,7 +27,9 @@ NUM_CLASSES = 90
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES,
                                                             use_display_name=True)
-category_index = label_map_util.create_category_index(categories)
+category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'}, 3: {'id': 3, 'name': 'car'},
+ 4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
+ 8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
 
 def detect_objects(image_np, sess, detection_graph):
@@ -49,6 +51,9 @@ def detect_objects(image_np, sess, detection_graph):
         [boxes, scores, classes, num_detections],
         feed_dict={image_tensor: image_np_expanded})
 
+    # Filter only the needed results
+    filtered_classes = ['person','car','bus','truck']
+
     # Visualization of the results of a detection.
     rect_points, class_names, class_colors = draw_boxes_and_labels(
         boxes=np.squeeze(boxes),
@@ -58,7 +63,6 @@ def detect_objects(image_np, sess, detection_graph):
         min_score_thresh=.5
     )
     return dict(rect_points=rect_points, class_names=class_names, class_colors=class_colors)
-
 
 def worker(input_q, output_q):
     # Load a (frozen) Tensorflow model into memory.
@@ -78,18 +82,53 @@ def worker(input_q, output_q):
         frame = input_q.get()
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         output_q.put(detect_objects(frame_rgb, sess, detection_graph))
-
     fps.stop()
     sess.close()
 
+def add_warning(frame, height, width):
+    red_warning = frame.copy()
+    yellow_warning = frame.copy()
+    cv2.rectangle(red_warning,(0,int(0.75*width)),(int(height),int(width)),(0,0,255),-1)
+    cv2.rectangle(yellow_warning,(0,int(0.5*width-1)),(int(height),int(0.75*width-1)),(0,255,255),-1)
+    cv2.addWeighted(red_warning, 0.5, frame, 0.5, 0, frame)
+    cv2.addWeighted(yellow_warning, 0.5, frame, 0.5, 0, frame)
+
+def alarm_condition(frame, point):
+    y_threshold_warning = 0.5
+    y_threshold_alarm = 0.75
+    if point['ymax']>y_threshold_warning:
+        cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
+        return True
+    elif point['ymax']>y_threshold_alarm:
+        cv2.putText(frame, 'ALARM', (100,50),font, 1.5, (0,0,255), 2)
+        return True
+    else:
+        return False
+
+def display_rectangle(frame,point,height,width,text=False):
+        mid_x = (point['xmax']+point['xmin'])/2
+        mid_y = (point['ymax']+point['ymin'])/2
+        width_aprox = round(point['xmax']-point['xmin'],1)
+        height_aprox = round(point['ymax']-point['ymin'],1)
+        cv2.rectangle(frame, (int(point['xmin'] * width), int(point['ymin'] * height)),
+                  (int(point['xmax'] * width), int(point['ymax'] * height)), color, 3)
+        cv2.rectangle(frame, (int(point['xmin'] * width), int(point['ymin'] * height)),
+                  (int(point['xmin'] * width) + len(name[0]) * 6,
+                   int(point['ymin'] * height) - 10), color, -1, cv2.LINE_AA)
+        if text:
+            cv2.putText(frame, 'Height: {}'.format(height_aprox*height), (int(mid_x*width),
+            int(mid_y*height+15)),font, 0.5, (255,255,255), 2)
+            cv2.putText(frame, 'Width: {}'.format(width_aprox*width), (int(mid_x*width),
+            int(mid_y*height-15)),font, 0.5, (255,255,255), 2)
 
 if __name__ == '__main__':
+    filtered_classes = ['person','car','bus','truck']
     parser = argparse.ArgumentParser()
     parser.add_argument('-strin', '--stream-input', dest="stream_in", action='store', type=str, default=None)
     parser.add_argument('-src', '--source', dest='video_source', type=int,
                         default=0, help='Device index of the camera.')
     parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=640, help='Width of the frames in the video stream.')
+                        default=1280, help='Width of the frames in the video stream.')
     parser.add_argument('-ht', '--height', dest='height', type=int,
                         default=480, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
@@ -103,46 +142,38 @@ if __name__ == '__main__':
         t.start()
 
     if (args.stream_in):
-        print('Reading from hls stream.')
-        video_capture = HLSVideoStream(src=args.stream_in).start()
+        print('Reading from IP')
+        video_capture = IPVideoStream(src=args.stream_in).start()
     else:
         print('Reading from webcam.')
         video_capture = WebcamVideoStream(src=args.video_source,
                                       width=args.width,
                                       height=args.height).start()
     fps = FPS().start()
-
     while True:
-        frame = video_capture.read()
+        frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
-
         t = time.time()
-
+        font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             pass  # fill up queue
         else:
-            font = cv2.FONT_HERSHEY_SIMPLEX
             data = output_q.get()
             rec_points = data['rect_points']
             class_names = data['class_names']
             class_colors = data['class_colors']
             for point, name, color in zip(rec_points, class_names, class_colors):
-                cv2.rectangle(frame, (int(point['xmin'] * args.width), int(point['ymin'] * args.height)),
-                              (int(point['xmax'] * args.width), int(point['ymax'] * args.height)), color, 3)
-                cv2.rectangle(frame, (int(point['xmin'] * args.width), int(point['ymin'] * args.height)),
-                              (int(point['xmin'] * args.width) + len(name[0]) * 6,
-                               int(point['ymin'] * args.height) - 10), color, -1, cv2.LINE_AA)
-                cv2.putText(frame, name[0], (int(point['xmin'] * args.width), int(point['ymin'] * args.height)), font,
-                            0.3, (0, 0, 0), 1)
-            if args.stream_out:
-                print('Streaming elsewhere!')
-            else:
-                cv2.imshow('Video', frame)
-
+                if 'person' in name[0]:
+                    print('Point:{:.2f},{:.2f}'.format(point['xmin'],point['xmax']))
+                    display_rectangle(frame,point,height,width,text=False)
+                    if alarm_condition(frame, point):
+                        print('\a')
+                        #os.system('say "warning"')
+                else:
+                    pass
+            add_warning(frame,height,width)
+            cv2.imshow('Video', frame)
         fps.update()
-
-        print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

@@ -6,10 +6,11 @@ import collections
 import cv2
 import datetime
 import subprocess as sp
-import json 
+import json
 import numpy
 import time
-from threading import Thread
+import requests
+from threading import Thread, Event, ThreadError
 from matplotlib import colors
 
 
@@ -44,54 +45,36 @@ class FPS:
 		# compute the (approximate) frames per second
 		return self._numFrames / self.elapsed()
 
-
-class HLSVideoStream:
+class IPVideoStream:
 	def __init__(self, src):
 		# initialize the video camera stream and read the first frame
 		# from the stream
-
 		# initialize the variable used to indicate if the thread should
 		# be stopped
 		self.stopped = False
-
-		FFMPEG_BIN = "ffmpeg"
-
-		metadata = {}
-
-		while "streams" not in metadata.keys():
-			
-			print('ERROR: Could not access stream. Trying again.')
-
-			info = sp.Popen(["ffprobe", 
-			"-v", "quiet",
-			"-print_format", "json",
-			"-show_format",
-			"-show_streams", src],
-			stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-			out, err = info.communicate(b"ffprobe -v quiet -print_format json -show_format -show_streams http://52.91.28.88:8080/hls/live.m3u8")
-
-			metadata = json.loads(out.decode('utf-8'))
-			time.sleep(5)
-
-
-		print('SUCCESS: Retrieved stream metadata.')
-
-		self.WIDTH = metadata["streams"][0]["width"]
-		self.HEIGHT = metadata["streams"][0]["height"]
-
-		self.pipe = sp.Popen([ FFMPEG_BIN, "-i", src,
-				 "-loglevel", "quiet", # no text output
-				 "-an",   # disable audio
-				 "-f", "image2pipe",
-				 "-pix_fmt", "bgr24",
-				 "-vcodec", "rawvideo", "-"],
-				 stdin = sp.PIPE, stdout = sp.PIPE)
-		print('WIDTH: ', self.WIDTH)
-
-		raw_image = self.pipe.stdout.read(self.WIDTH*self.HEIGHT*3) # read 432*240*3 bytes (= 1 frame)
-		self.frame =  numpy.fromstring(raw_image, dtype='uint8').reshape((self.HEIGHT,self.WIDTH,3))
-		self.grabbed = self.frame is not None
-
+		# try connection until succesful
+		self.connected = False
+		while not self.connected:
+			try:
+				self.stream = requests.get(src, stream=True, timeout=10)
+				self.connected = True
+				print('[INFO] Connection succesful.')
+			except:
+				print('[INFO] Connection error. Retrying in 10 seconds...')
+				time.sleep(10)
+				pass
+		#read the first frame
+		bytes_ = bytes()
+		for chunk in self.stream.iter_content(chunk_size=1024):
+			bytes_+=chunk
+			a = bytes_.find(b'\xff\xd8')
+			b = bytes_.find(b'\xff\xd9')
+			if a!=-1 and b!=-1:
+				jpg = bytes_[a:b+2]
+				bytes_ = bytes_[b+2:]
+				self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+				self.grabbed = self.frame is not None
+				break
 
 	def start(self):
 		# start the thread to read frames from the video stream
@@ -101,14 +84,24 @@ class HLSVideoStream:
 	def update(self):
 		# keep looping infinitely until the thread is stopped
 		# if the thread indicator variable is set, stop the thread
-
+		bytes_ = bytes()
 		while True:
 			if self.stopped:
 				return
-
-			raw_image = self.pipe.stdout.read(self.WIDTH*self.HEIGHT*3) # read 432*240*3 bytes (= 1 frame)
-			self.frame =  numpy.fromstring(raw_image, dtype='uint8').reshape((self.HEIGHT,self.WIDTH,3))
-			self.grabbed = self.frame is not None
+			try:
+				for chunk in self.stream.iter_content(chunk_size=1024):
+					bytes_+=chunk
+					a = bytes_.find(b'\xff\xd8')
+					b = bytes_.find(b'\xff\xd9')
+					if a!=-1 and b!=-1:
+						jpg = bytes_[a:b+2]
+						bytes_ = bytes_[b+2:]
+						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+						self.grabbed = self.frame is not None
+						break
+			except ThreadError:
+				print('ThreadError')
+				self.stopped = True
 
 	def read(self):
 		# return the frame most recently read
@@ -117,7 +110,6 @@ class HLSVideoStream:
 	def stop(self):
 		# indicate that the thread should be stopped
 		self.stopped = True
-
 
 
 class WebcamVideoStream:
@@ -144,7 +136,6 @@ class WebcamVideoStream:
 			# if the thread indicator variable is set, stop the thread
 			if self.stopped:
 				return
-
 			# otherwise, read the next frame from the stream
 			(self.grabbed, self.frame) = self.stream.read()
 
