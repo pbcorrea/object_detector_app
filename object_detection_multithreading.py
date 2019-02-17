@@ -108,8 +108,8 @@ def add_warning(frame, height, width):
 def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
-    cv2.line(frame, (0,y_threshold_warning*height), (width,y_threshold_warning*height), (255,255,0))
-    cv2.line(frame, (0,y_threshold_alarm*height), (width,y_threshold_alarm*height), (255,0,0))
+    cv2.line(frame, (0,int(y_threshold_warning*height)), (int(width),int(y_threshold_warning*height)), (255,255,0))
+    cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (255,0,0))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
         return True
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     height = 480
     width = 600
-    IP = '127.0.0.1'
+    ip = '127.0.0.1'
     port = '502'
     connection = ModbusClient(host=ip, port=port, auto_open=True)
     connection.debug(True)
@@ -170,8 +170,8 @@ if __name__ == '__main__':
                                       width=args.width,
                                       height=args.height).start()
     fps = FPS().start()
-    video_path = ('saved_videos'+)
-    writer =
+#    video_path = ('saved_videos'+)
+#    writer =
     while True:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
