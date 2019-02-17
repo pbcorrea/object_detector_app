@@ -46,4 +46,3 @@ dependencies:
   - werkzeug==0.12.2
   - scipy
 prefix: /Users/datitran/anaconda/envs/object-detection
-

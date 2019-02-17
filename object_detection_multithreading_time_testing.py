@@ -6,6 +6,8 @@ import numpy as np
 import subprocess as sp
 import json
 import tensorflow as tf
+import struct
+import socket
 
 from queue import Queue
 from threading import Thread
@@ -31,6 +33,15 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
+def raise_alarm(IP, port):
+    alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
+    print('[INFO] Alarm raised at {}'.format(alarm_time))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((IP,port))
+    #req = struct.pack() FALTA DEFINIR MJE PARA ACTIVAR LA ALARMA
+    sock.send(req)
+    sock.close()
+
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -53,7 +64,7 @@ def detect_objects(image_np, sess, detection_graph):
         feed_dict={image_tensor: image_np_expanded})
 
     # Filter only the needed results
-    filtered_classes = ['person','car','bus','truck']
+    filtered_classes = ['person']
 
     # Visualization of the results of a detection.
     rect_points, class_names, class_colors = draw_boxes_and_labels(
@@ -84,10 +95,7 @@ def worker(input_q, output_q):
         fps.update()
         frame = input_q.get()
         if frame is not None:
-            try:
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            except:
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         else:
             frame_rgb = np.zeros((height,width,3), np.uint8)
         output_q.put(detect_objects(frame_rgb, sess, detection_graph))
@@ -105,11 +113,14 @@ def add_warning(frame, height, width):
 def alarm_condition(frame, point):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
-    if point['ymax']>y_threshold_warning:
+    #cv2.line(frame, (0,y_threshold_warning*height), (width,y_threshold_warning*height), color = 'yellow')
+    #cv2.line(frame, (0,y_threshold_alarm*height), (width,y_threshold_alarm*height), color = 'red')
+    if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
         return True
     elif point['ymax']>y_threshold_alarm:
         cv2.putText(frame, 'ALARM', (100,50),font, 1.5, (0,0,255), 2)
+        ## raise_alarm(IP,port)
         return True
     else:
         return False
@@ -166,12 +177,11 @@ if __name__ == '__main__':
     while True:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
-
+        font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             pass  # fill up queue
         else:
             t = time.time()
-            font = cv2.FONT_HERSHEY_DUPLEX
             data = output_q.get()
             rec_points = data['rect_points']
             class_names = data['class_names']

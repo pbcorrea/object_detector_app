@@ -1,3 +1,5 @@
+
+
 import os
 import cv2
 import time
@@ -11,6 +13,7 @@ from queue import Queue
 from threading import Thread
 from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
 from object_detection.utils import label_map_util
+from pyModbusTCP.client import ModbusClient
 
 CWD_PATH = os.getcwd()
 
@@ -31,6 +34,15 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
+def raise_alarm(c, req):
+    alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
+    print('[INFO] Alarm raised at {}'.format(alarm_time))
+    #register = ?
+    try:
+        c.write_multiple_registers(register, req)
+        print('[INFO] Shutdown succesful')
+    except:
+        print('Error')
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -52,7 +64,7 @@ def detect_objects(image_np, sess, detection_graph):
         feed_dict={image_tensor: image_np_expanded})
 
     # Filter only the needed results
-    filtered_classes = ['person','car','bus','truck']
+    filtered_classes = ['person']
 
     # Visualization of the results of a detection.
     rect_points, class_names, class_colors = draw_boxes_and_labels(
@@ -93,14 +105,17 @@ def add_warning(frame, height, width):
     cv2.addWeighted(red_warning, 0.5, frame, 0.5, 0, frame)
     cv2.addWeighted(yellow_warning, 0.5, frame, 0.5, 0, frame)
 
-def alarm_condition(frame, point):
+def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
-    if point['ymax']>y_threshold_warning:
+    cv2.line(frame, (0,y_threshold_warning*height), (width,y_threshold_warning*height), (255,255,0))
+    cv2.line(frame, (0,y_threshold_alarm*height), (width,y_threshold_alarm*height), (255,0,0))
+    if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
         return True
     elif point['ymax']>y_threshold_alarm:
         cv2.putText(frame, 'ALARM', (100,50),font, 1.5, (0,0,255), 2)
+        ## mandar señal al puerto xxx
         return True
     else:
         return False
@@ -122,18 +137,23 @@ def display_rectangle(frame,point,height,width,text=False):
             int(mid_y*height-15)),font, 0.5, (255,255,255), 2)
 
 if __name__ == '__main__':
-    filtered_classes = ['person','car','bus','truck']
+    filtered_classes = ['person']
     parser = argparse.ArgumentParser()
     parser.add_argument('-strin', '--stream-input', dest="stream_in", action='store', type=str, default=None)
     parser.add_argument('-src', '--source', dest='video_source', type=int,
                         default=0, help='Device index of the camera.')
     parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=1280, help='Width of the frames in the video stream.')
+                        default=600, help='Width of the frames in the video stream.')
     parser.add_argument('-ht', '--height', dest='height', type=int,
                         default=480, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
     args = parser.parse_args()
-
+    height = 480
+    width = 600
+    IP = '127.0.0.1'
+    port = '502'
+    connection = ModbusClient(host=ip, port=port, auto_open=True)
+    connection.debug(True)
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
     for i in range(1):
@@ -150,6 +170,8 @@ if __name__ == '__main__':
                                       width=args.width,
                                       height=args.height).start()
     fps = FPS().start()
+    video_path = ('saved_videos'+)
+    writer =
     while True:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
@@ -164,13 +186,14 @@ if __name__ == '__main__':
             class_colors = data['class_colors']
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
-                    print('Point:{:.2f},{:.2f}'.format(point['xmin'],point['xmax']))
                     display_rectangle(frame,point,height,width,text=False)
-                    if alarm_condition(frame, point):
+                    if alarm_condition(frame, point, height, width):
+                        #raise_alarm(connection, req)
                         print('\a')
                         #os.system('say "warning"')
                 else:
                     pass
+            #
             add_warning(frame,height,width)
             cv2.imshow('Video', frame)
         fps.update()
