@@ -98,8 +98,6 @@ def worker(input_q, output_q):
     sess.close()
 
 def add_warning(frame, height, width):
-    red_warning = frame.copy()
-    yellow_warning = frame.copy()
     cv2.line(frame, (0,int(0.5*height)), (int(width),int(0.5*height)), (0,255,255))
     cv2.line(frame, (0,int(0.75*height)), (int(width),int(0.75*height)), (0,0,255))
 
