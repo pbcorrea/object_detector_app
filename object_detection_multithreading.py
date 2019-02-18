@@ -169,6 +169,7 @@ if __name__ == '__main__':
 #    video_path = ('saved_videos'+)
 #    writer =
     while True:
+        print(video_capture.read())
         if video_capture.read() is not None:
             frame = cv2.imdecode(video_capture.read(), 1)
         else:
