@@ -100,16 +100,12 @@ def worker(input_q, output_q):
 def add_warning(frame, height, width):
     red_warning = frame.copy()
     yellow_warning = frame.copy()
-    cv2.rectangle(red_warning,(0,int(0.75*width)),(int(height),int(width)),(0,0,255),-1)
-    cv2.rectangle(yellow_warning,(0,int(0.5*width-1)),(int(height),int(0.75*width-1)),(0,255,255),-1)
-    cv2.addWeighted(red_warning, 0.5, frame, 0.5, 0, frame)
-    cv2.addWeighted(yellow_warning, 0.5, frame, 0.5, 0, frame)
+    cv2.line(frame, (0,int(0.5*height)), (int(width),int(0.5*height)), (0,255,255))
+    cv2.line(frame, (0,int(0.75*height)), (int(width),int(0.75*height)), (0,0,255))
 
 def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
-    cv2.line(frame, (0,int(y_threshold_warning*height)), (int(width),int(y_threshold_warning*height)), (255,255,0))
-    cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (255,0,0))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
         return True
@@ -143,13 +139,13 @@ if __name__ == '__main__':
     parser.add_argument('-src', '--source', dest='video_source', type=int,
                         default=0, help='Device index of the camera.')
     parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=600, help='Width of the frames in the video stream.')
+                        default=800, help='Width of the frames in the video stream.')
     parser.add_argument('-ht', '--height', dest='height', type=int,
-                        default=480, help='Height of the frames in the video stream.')
+                        default=600, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
     args = parser.parse_args()
-    height = 480
-    width = 600
+    height = 600
+    width = 800
     ip = '127.0.0.1'
     port = '502'
     connection = ModbusClient(host=ip, port=port, auto_open=True)
@@ -173,7 +169,10 @@ if __name__ == '__main__':
 #    video_path = ('saved_videos'+)
 #    writer =
     while True:
-        frame = cv2.imdecode(video_capture.read(), 1)
+        if video_capture.read() is not None:
+            frame = cv2.imdecode(video_capture.read(), 1)
+        else:
+            pass
         input_q.put(frame)
         t = time.time()
         font = cv2.FONT_HERSHEY_DUPLEX
