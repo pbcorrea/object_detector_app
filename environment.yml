@@ -4,11 +4,8 @@ channels: !!python/tuple
 - defaults
 dependencies:
 - cycler=0.10.0=py35_0
-- freetype=2.5.5=2
-- jbig=2.1=0
 - menpo::opencv3=3.1.0=py35_0
 - matplotlib=2.0.2=np113py35_0
-- menpo::tbb=4.3_20141023=0
 - mkl=2017.0.1=0
 - numpy=1.13.0=py35_0
 - olefile=0.44=py35_0
@@ -20,12 +17,15 @@ dependencies:
 - pytest=3.2.1=py35_0
 - python-dateutil=2.6.1=py35_0
 - pytz=2017.2=py35_0
-- readline=6.2=2
 - setuptools=27.2.0=py35_0
 - sip=4.18=py35_0
 - six=1.10.0=py35_0
 - wheel=0.29.0=py35_0
 - pip:
+  - tbb=4.3_20141023=0
+  - freetype=2.5.5=2
+  - readline=6.2=2
+  - jbig=2.1=0
   - jpeg=9b=0
   - qt=5.6.2=2
   - libtiff=4.0.6=3
