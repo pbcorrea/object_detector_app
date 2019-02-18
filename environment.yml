@@ -23,7 +23,7 @@ dependencies:
 - wheel=0.29.0=py35_0
 - pip:
   - requests
-  - tbb==4.4
+  - tbb
   - freetype==2.5.5=2
   - readline==6.2=2
   - jbig==2.1=0
