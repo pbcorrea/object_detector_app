@@ -24,18 +24,18 @@ dependencies:
 - pip:
   - requests
   - tbb
-  - freetype==2.5.5=2
-  - readline==6.2=2
-  - jbig==2.1=0
-  - jpeg==9b=0
-  - qt==5.6.2=2
-  - libtiff==4.0.6=3
-  - openssl==1.0.2l=0
-  - tk==8.5.18=0
-  - xz==5.2.2=1
-  - zlib==1.2.8=3
-  - icu==54.1=0
-  - python==3.5.3=1
+  - freetype==2.5.5
+  - readline==6.2
+  - jbig==2.1
+  - jpeg==9b
+  - qt==5.6.2
+  - libtiff==4.0.6
+  - openssl==1.0.2l
+  - tk==8.5.18
+  - xz==5.2.2
+  - zlib==1.2.8
+  - icu==54.1
+  - python==3.5.3
   - backports.weakref==1.0rc1
   - bleach==1.5.0
   - html5lib==0.9999999
@@ -44,6 +44,6 @@ dependencies:
   - tensorflow==1.2.0
   - werkzeug==0.12.2
   - scipy
-  - sqlite==3.13.0=0
-  - libpng==1.6.27=0
+  - sqlite==3.13.0
+  - libpng==1.6.27
 prefix: /Users/datitran/anaconda/envs/object-detection
