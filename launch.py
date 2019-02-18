@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import datetime
@@ -16,7 +16,7 @@ print(ip_dir)
 log_directory = 'logs/'
 while True:
     try:
-        os.system('python object_detection_multithreading.py -strin '+ip_dir)
+        os.system('python object_detection_multithreading_time_testing.py -strin '+ip_dir)
         time.sleep(60)
         break
     except Exception as e:
