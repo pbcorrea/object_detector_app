@@ -6,12 +6,11 @@ import time
 height='600'
 width='800'
 size = str(width+'x'+height)
-camera = "left"
 quality = "40"
 fps = "25.0"
 
 ip_dir=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
-+size+"&quality="+quality+"&fps="+fps+"&camera="+camera)
++size+"&quality="+quality+"&fps="+fps)
 print(ip_dir)
 log_directory = 'logs/'
 while True:
