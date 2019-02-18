@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#! latin-1
+# -*- coding: utf-8 -*-
 import os
 import datetime
 import time
