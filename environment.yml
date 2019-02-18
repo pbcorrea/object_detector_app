@@ -4,15 +4,12 @@ channels: !!python/tuple
 - defaults
 dependencies:
 - cycler=0.10.0=py35_0
-- freetype=2.5.5=py35_2
-- icu=54.1
-- jbig=2.1
+- freetype=2.5.5
 - menpo::opencv3=3.1.0=py35_0
 - jpeg=9b
 - libpng=1.6.27
 - libtiff=4.0.6
 - matplotlib=2.0.2=np113py35_0
-- menpo::tbb=4.3_20141023
 - mkl=2017.0.1
 - numpy=1.13.0=py35_0
 - olefile=0.44=py35_0
@@ -27,7 +24,6 @@ dependencies:
 - python-dateutil=2.6.1=py35_0
 - pytz=2017.2=py35_0
 - qt=5.6.2
-- readline=6.2
 - setuptools=27.2.0=py35_0
 - sip=4.18=py35_0
 - six=1.10.0=py35_0
@@ -39,8 +35,12 @@ dependencies:
   - backports.weakref==1.0rc1
   - bleach==1.5.0
   - html5lib==0.9999999
+  - icu=54.1
+  - jbig=2.1
   - markdown==2.2.0
   - protobuf==3.3.0
+  - readline=6.2
+  - tbb=4.3_20141023
   - tensorflow==1.2.0
   - werkzeug==0.12.2
   - scipy
