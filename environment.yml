@@ -22,7 +22,7 @@ dependencies:
 - six=1.10.0=py35_0
 - wheel=0.29.0=py35_0
 - pip:
-  - tbb=4.3_20141023=0
+  - tbb
   - freetype=2.5.5=2
   - readline=6.2=2
   - jbig=2.1=0
