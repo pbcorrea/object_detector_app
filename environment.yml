@@ -4,7 +4,7 @@ channels: !!python/tuple
 - defaults
 dependencies:
 - cycler=0.10.0=py35_0
-- freetype=2.5.5=py35_0
+- freetype=2.5.5
 - icu=54.1=py35_0
 - jbig=2.1=py35_0
 - menpo::opencv3=3.1.0=py35_0
