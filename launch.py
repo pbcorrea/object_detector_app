@@ -17,8 +17,6 @@ log_directory = 'logs/'
 while True:
     try:
         os.system('python object_detection_multithreading_time_testing.py -strin '+ip_dir)
-        time.sleep(60)
-        break
     except Exception as e:
         f=open(log_directory+'error_logs.txt', "a+")
         f.write('{}. Failure to execute. Error:\t{}'.format(datetime.now.strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
