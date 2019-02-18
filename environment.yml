@@ -4,7 +4,7 @@ channels: !!python/tuple
 - defaults
 dependencies:
 - cycler=0.10.0=py35_0
-- freetype=2.5.5=py35_2
+- freetype=2.5.5=py35_0
 - icu=54.1=py35_0
 - jbig=2.1=py35_0
 - menpo::opencv3=3.1.0=py35_0
@@ -23,7 +23,7 @@ dependencies:
 - pyparsing=2.2.0=py35_0
 - pyqt=5.6.0=py35_2
 - pytest=3.2.1=py35_0
-- python=3.5.3=py35_1
+- python=3.5.3
 - python-dateutil=2.6.1=py35_0
 - pytz=2017.2=py35_0
 - qt=5.6.2=py35_2
