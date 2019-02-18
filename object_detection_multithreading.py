@@ -191,7 +191,7 @@ if __name__ == '__main__':
                 else:
                     pass
             #
-            cv2.resize(frame,height,width)
+            #cv2.resize(frame,height,width)
             add_warning(frame,height,width)
             cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
