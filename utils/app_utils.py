@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # From http://www.pyimagesearch.com/2015/12/21/increasing-webcam-fps-with-python-and-opencv/
 
 import struct

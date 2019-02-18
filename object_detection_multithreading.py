@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -191,7 +192,6 @@ if __name__ == '__main__':
                 else:
                     pass
             #
-            cv2.resize(frame,(height,width))
             add_warning(frame,height,width)
             cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
