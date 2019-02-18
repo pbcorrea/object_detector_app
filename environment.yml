@@ -35,14 +35,14 @@ dependencies:
   - backports.weakref==1.0rc1
   - bleach==1.5.0
   - html5lib==0.9999999
-  - icu=54.1
-  - jbig=2.1
+  - icu==54.1
+  - jbig==2.1
   - markdown==2.2.0
   - protobuf==3.3.0
-  - readline=6.2
-  - tbb=4.3_20141023
+  - readline==6.2
+  - tbb==4.3_20141023
   - tensorflow==1.2.0
   - werkzeug==0.12.2
   - scipy
-  - xz=5.2.2
+  - xz==5.2.2
 prefix: /Users/datitran/anaconda/envs/object-detection
