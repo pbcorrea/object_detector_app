@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#! latin-1
 import os
 import datetime
 import time
