@@ -191,8 +191,9 @@ if __name__ == '__main__':
                 else:
                     pass
             #
+            cv2.resize(frame,height,width)
             add_warning(frame,height,width)
-            cv2.imshow('Video', frame)
+            cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
