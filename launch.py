@@ -11,6 +11,7 @@ fps = "25.0"
 
 ip_dir=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
 +size+"&quality="+quality+"&fps="+fps+"&camera="+camera)
+print(ip_dir)
 
 log_directory = 'logs/'
 while True:
