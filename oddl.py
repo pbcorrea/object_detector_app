@@ -145,7 +145,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     height = 600
     width = 800
-    size = str(width)'x'+str(height)
+    size = str(width)+'x'+str(height)
     quality = "40"
     fps = "25.0"
     stream_ip=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
