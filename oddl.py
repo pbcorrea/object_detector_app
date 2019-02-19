@@ -143,9 +143,9 @@ if __name__ == '__main__':
                         default=600, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
     args = parser.parse_args()
-    height = '600'
-    width = '800'
-    size = str(width+'x'+height)
+    height = 600
+    width = 800
+    size = str(width)'x'+str(height)
     quality = "40"
     fps = "25.0"
     stream_ip=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
@@ -160,7 +160,10 @@ if __name__ == '__main__':
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
         t.start()
-    video_capture = IPVideoStream(src=stream_ip).start()
+    try:
+        video_capture = IPVideoStream(src=stream_ip).start()
+    except:
+        print('Could not connect to video source')
     fps = FPS().start()
 #    video_path = ('saved_videos'+)
 #    writer =
