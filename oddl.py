@@ -143,8 +143,8 @@ if __name__ == '__main__':
                         default=600, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
     args = parser.parse_args()
-    height = 600
-    width = 800
+    height = '600'
+    width = '800'
     size = str(width+'x'+height)
     quality = "40"
     fps = "25.0"
