@@ -170,6 +170,7 @@ if __name__ == '__main__':
     while True:
         if video_capture.read() is not None:
             frame = cv2.imdecode(video_capture.read(), 1)
+            print(frame.shape)
         else:
             pass
         input_q.put(frame)
