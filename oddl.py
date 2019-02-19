@@ -160,14 +160,7 @@ if __name__ == '__main__':
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
         t.start()
-    if (args.stream_in):
-        print('Reading from IP')
-        video_capture = IPVideoStream(src=args.stream_in).start()
-    else:
-        print('Reading from webcam.')
-        video_capture = WebcamVideoStream(src=args.video_source,
-                                      width=args.width,
-                                      height=args.height).start()
+    video_capture = IPVideoStream(src=stream_ip).start()
     fps = FPS().start()
 #    video_path = ('saved_videos'+)
 #    writer =
