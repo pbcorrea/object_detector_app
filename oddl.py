@@ -161,7 +161,7 @@ if __name__ == '__main__':
         t.daemon = True
         t.start()
     try:
-        video_capture = IPVideoStream(src=stream_ip).start()
+        video_capture = IPVideoStream(src=stream_ip, wd=800, ht=600).start()
     except:
         print('Could not connect to video source')
     fps = FPS().start()
@@ -172,6 +172,7 @@ if __name__ == '__main__':
             frame = cv2.imdecode(video_capture.read(), 1)
             print(frame.shape)
         else:
+            frame = cv2.imdecode(np.zeros(800,600,3), 1)
             pass
         input_q.put(frame)
         t = time.time()
@@ -198,7 +199,6 @@ if __name__ == '__main__':
         fps.update()
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
