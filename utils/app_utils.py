@@ -47,7 +47,7 @@ class FPS:
 		return self._numFrames / self.elapsed()
 
 class IPVideoStream:
-	def __init__(self, src):
+	def __init__(self, src, wd, ht):
 		# initialize the video camera stream and read the first frame
 		# from the stream
 		# initialize the variable used to indicate if the thread should
@@ -73,7 +73,7 @@ class IPVideoStream:
 			if a!=-1 and b!=-1:
 				jpg = bytes_[a:b+2]
 				bytes_ = bytes_[b+2:]
-				self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+				self.frame = cv2.resize(numpy.fromstring(jpg, dtype=numpy.uint8),(int(wd),int(ht)))
 				self.grabbed = self.frame is not None
 				break
 
