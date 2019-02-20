@@ -170,7 +170,7 @@ if __name__ == '__main__':
             frame = cv2.imdecode(video_capture.read(), 1)
             #print(frame.shape)
         else:
-            frame = cv2.imdecode(np.zeros(800,600,3), 1)
+            frame = np.zeros(600,800,3), uint8)
             pass
         input_q.put(frame)
         t = time.time()
