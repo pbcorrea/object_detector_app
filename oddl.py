@@ -168,7 +168,7 @@ if __name__ == '__main__':
     while True:
         if video_capture.read() is not None:
             frame = cv2.imdecode(video_capture.read(), 1)
-            print(frame.shape)
+            #print(frame.shape)
         else:
             frame = cv2.imdecode(np.zeros(800,600,3), 1)
             pass
