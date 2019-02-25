@@ -163,14 +163,13 @@ if __name__ == '__main__':
     video_capture = IPVideoStream(src=stream_ip, wd=800, ht=600).start()
     cv2.useOptimized()
     fps = FPS().start()
-#    video_path = ('saved_videos'+)
-#    writer =
     while True:
         if video_capture.read() is not None:
             frame = cv2.imdecode(video_capture.read(), 1)
             #print(frame.shape)
         else:
             frame = np.zeros(600,800,3), uint8)
+            print('Image not loading')
             pass
         input_q.put(frame)
         t = time.time()
