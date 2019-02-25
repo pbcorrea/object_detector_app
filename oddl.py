@@ -160,7 +160,9 @@ if __name__ == '__main__':
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
         t.start()
-    video_capture = IPVideoStream(src=stream_ip, wd=800, ht=600).start()
+    wd = 800
+    ht = 600
+    video_capture = IPVideoStream(src=stream_ip, wd, ht).start()
     cv2.useOptimized()
     fps = FPS().start()
     while True:
