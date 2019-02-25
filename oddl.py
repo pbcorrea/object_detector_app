@@ -165,11 +165,12 @@ if __name__ == '__main__':
     fps = FPS().start()
     while True:
         if video_capture.read() is not None:
+            print('Image loading')
             frame = cv2.imdecode(video_capture.read(), 1)
             #print(frame.shape)
         else:
-            frame = np.zeros((600,800,3), uint8)
             print('Image not loading')
+            frame = np.zeros((600,800,3), uint8)
             pass
         input_q.put(frame)
         t = time.time()
