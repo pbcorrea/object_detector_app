@@ -168,7 +168,7 @@ if __name__ == '__main__':
             frame = cv2.imdecode(video_capture.read(), 1)
             #print(frame.shape)
         else:
-            frame = np.zeros(600,800,3), uint8)
+            frame = np.zeros((600,800,3), uint8)
             print('Image not loading')
             pass
         input_q.put(frame)
