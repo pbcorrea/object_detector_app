@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
 import cv2
 import time
@@ -179,11 +178,8 @@ if __name__ == '__main__':
                     display_rectangle(frame,point,height,width,text=False)
                     if alarm_condition(frame, point, height, width):
                         connection.write_single_coil(0,1)
-                    else:
-                        connection.write_single_coil(0,0)
-                else:   
+                else:
                     pass
-            #
             add_warning(frame,height,width)
             cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
