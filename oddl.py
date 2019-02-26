@@ -165,7 +165,6 @@ if __name__ == '__main__':
     cv2.useOptimized()
     fps = FPS().start()
     while True:
-        print(type(video_capture.read()))
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
         t = time.time()
