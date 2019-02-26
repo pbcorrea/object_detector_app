@@ -14,11 +14,12 @@ with open(log_file, "a+") as f:
         try:
             process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
-            ret = process.returncode
+            poll = process.poll()
             print(stdout.decode("utf-8"))
-            if ret:
+            if poll is not None:
                 print('Error {} with code {}'.format(stderr,ret))
                 process.terminate()
+                pass
         except Exception as e:
             f.write('{}. Failure to execute. Error:\t{}'.format(datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
             pass
