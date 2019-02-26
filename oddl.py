@@ -36,6 +36,7 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
 
 def raise_alarm(connection, alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
+    print(alarm)
     if alarm:
         try:
             connection.write_single_coil(0,1)
