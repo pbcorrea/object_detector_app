@@ -6,6 +6,7 @@ from subprocess import Popen, PIPE
 import time
 
 cwd = os.getcwd()
+print(cwd)
 log_directory = os.path.join(cwd,'/logs/')
 while True:
     try:
