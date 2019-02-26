@@ -15,7 +15,7 @@ with open(log_file, "a+") as f:
             process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             poll = process.poll()
-            ret = process.returncode()
+            ret = process.returncode
             print(stdout.decode("utf-8"))
             if poll != None:
                 print('Error {} with code {}'.format(stderr,ret))
