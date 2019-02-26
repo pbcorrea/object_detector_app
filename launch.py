@@ -15,7 +15,7 @@ with open(log_file, "a+") as f:
             process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             ret = process.returncode
-            print(str(stdout))
+            print(stdout.decode("utf-8"))
             if ret:
                 print('Error {} with code {}'.format(stderr,ret))
                 process.terminate()
