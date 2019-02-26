@@ -16,10 +16,8 @@ with open(log_file, "a+") as f:
             stdout, stderr = process.communicate()
             poll = process.poll()
             print(stdout.decode("utf-8"))
-            if poll is not None:
+            if poll != None:
                 print('Error {} with code {}'.format(stderr,ret))
-                process.terminate()
-                pass
         except Exception as e:
             f.write('{}. Failure to execute. Error:\t{}'.format(datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
             pass
