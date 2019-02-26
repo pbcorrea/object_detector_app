@@ -178,6 +178,7 @@ if __name__ == '__main__':
         raise_alarm(connection,alarm)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
+            alarm = False
             pass  # fill up queue
         else:
             data = output_q.get()
