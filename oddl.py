@@ -191,11 +191,11 @@ if __name__ == '__main__':
                     display_rectangle(frame,point,height,width,text=False)
                     alarm = alarm_condition(frame, point, height, width)
                 else:
-                    alarm = alarm_condition(frame, point, height, width)
+                    alarm = False
                     pass
             add_warning(frame,height,width)
             cv2.imshow('ODDL - Fatality Prevention', frame)
-            alarm = alarm_condition(frame, point, height, width)
+            
         fps.update()
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
