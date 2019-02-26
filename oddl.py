@@ -171,7 +171,11 @@ if __name__ == '__main__':
     fps = FPS().start()
     alarm = False
     while True:
-        frame = cv2.imdecode(video_capture.read(), 1)
+        try:
+            frame = cv2.imdecode(video_capture.read(), 1)
+        except:
+            frame =  np.zeros((height,width,3), np.uint8)
+            pass
         input_q.put(frame)
         raise_alarm(connection,alarm)
         font = cv2.FONT_HERSHEY_DUPLEX
