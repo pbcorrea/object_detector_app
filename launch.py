@@ -6,8 +6,9 @@ from subprocess import Popen, PIPE
 import time
 
 cwd = os.getcwd()
-print(cwd)
-log_directory = os.path.join(cwd,'/logs/')
+log_directory = os.path.join(cwd,'logs')
+print(log_directory)
+print(log_directory+'error_logs.txt')
 while True:
     try:
         subprocess.call(['python','oddl.py'])
