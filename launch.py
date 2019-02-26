@@ -14,11 +14,11 @@ with open(log_file, "a+") as f:
         try:
             process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
-            ret = program.returncode
+            ret = process.returncode
             print(stdout)
             if ret:
-                process.terminate()
                 print('Error {} with code {}'.format(stderr,ret))
+                process.terminate()
         except Exception as e:
-            f.write('{}. Failure to execute. Error:\t{}'.format(datetime.datetime.now.strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
+            f.write('{}. Failure to execute. Error:\t{}'.format(datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
             pass
