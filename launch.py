@@ -17,7 +17,7 @@ print(ip_dir)
 log_directory = 'logs/'
 while True:
     try:
-        subprocess.call(['python','object_detection_multithreading.py','-strin '+ip_dir])
+        subprocess.call(['python','oddl.py'])
         #os.system('python object_detection_multithreading.py -strin '+ip_dir)
     except Exception as e:
         f=open(log_directory+'error_logs.txt', "a+")
