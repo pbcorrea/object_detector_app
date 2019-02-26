@@ -110,7 +110,6 @@ def alarm_condition(frame, point, height, width):
         return True
     elif point['ymax']>y_threshold_alarm:
         cv2.putText(frame, 'ALARM', (100,50),font, 1.5, (0,0,255), 2)
-        ## mandar señal al puerto xxx
         return True
     else:
         return False
@@ -146,14 +145,14 @@ if __name__ == '__main__':
     height = 600
     width = 800
     size = str(width)+'x'+str(height)
-    quality = "40"
-    fps = "25.0"
+    quality = "20"
+    fps = "15.0"
     stream_ip=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
-    +size+"&quality="+quality+"&fps="+fps)
-    modbus_ip = '127.0.0.1'
+    +size+"&quality="+quality+"&fps="+fps+"&camera=left")
+    modbus_ip = '192.168.127.254'
     modbus_port = '502'
     connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
-    connection.debug(True)
+    connection.debug(False)
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
     for i in range(1):
@@ -164,12 +163,7 @@ if __name__ == '__main__':
     cv2.useOptimized()
     fps = FPS().start()
     while True:
-        if video_capture.read() is not None:
-            frame = cv2.imdecode(video_capture.read(), 1)
-            print(frame.shape)
-        else:
-            frame = np.zeros((600,800,3), uint8)
-            pass
+        frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
         t = time.time()
         font = cv2.FONT_HERSHEY_DUPLEX
@@ -184,10 +178,10 @@ if __name__ == '__main__':
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
                     if alarm_condition(frame, point, height, width):
-                        #raise_alarm(connection, req)
-                        print('\a')
-                        #os.system('say "warning"')
-                else:
+                        connection.write_single_coil(0,1)
+                    else:
+                        connection.write_single_coil(0,0)
+                else:   
                     pass
             #
             add_warning(frame,height,width)
@@ -201,3 +195,4 @@ if __name__ == '__main__':
 
     video_capture.stop()
     cv2.destroyAllWindows()
+    connection.write_single_coil(0,0)

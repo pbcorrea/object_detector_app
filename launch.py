@@ -9,10 +9,10 @@ height='600'
 width='800'
 size = str(width+'x'+height)
 quality = "40"
-fps = "25.0"
+fps = "15.0"
 
 ip_dir=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
-+size+"&quality="+quality+"&fps="+fps)
++size+"&quality="+quality+"&fps="+fps+"&camera=left")
 print(ip_dir)
 log_directory = 'logs/'
 while True:
