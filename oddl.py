@@ -34,15 +34,19 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
-def raise_alarm(c, req):
+def raise_alarm(connection, alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
-    print('[INFO] Alarm raised at {}'.format(alarm_time))
-    #register = ?
-    try:
-        c.write_multiple_registers(register, req)
-        print('[INFO] Shutdown succesful')
-    except:
-        print('Error')
+    if alarm:
+        try:
+            connection.write_single_coil(0,1)
+            print('[INFO] Alarm raised at {}'.format(alarm_time))
+        except:
+            pass
+    else:
+        try:
+            connection.write_single_coil(0,0)
+        except:
+            pass
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -164,10 +168,11 @@ if __name__ == '__main__':
     video_capture = IPVideoStream(src=stream_ip).start()
     cv2.useOptimized()
     fps = FPS().start()
+    alarm = False
     while True:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
-        t = time.time()
+        raise_alarm(connection,alarm)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             pass  # fill up queue
@@ -179,8 +184,7 @@ if __name__ == '__main__':
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
-                    if alarm_condition(frame, point, height, width):
-                        connection.write_single_coil(0,1)
+                    alarm = alarm_condition(frame, point, height, width):
                 else:
                     pass
             add_warning(frame,height,width)
