@@ -40,7 +40,6 @@ def raise_alarm(connection, alarm):
     if alarm:
         try:
             connection.write_single_coil(0,1)
-            print('[INFO] Alarm raised at {}'.format(alarm_time))
         except:
             pass
     else:
@@ -195,7 +194,6 @@ if __name__ == '__main__':
                     pass
             add_warning(frame,height,width)
             cv2.imshow('ODDL - Fatality Prevention', frame)
-            
         fps.update()
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
