@@ -16,7 +16,7 @@ with open(log_file, "a+") as f:
             stdout, stderr = process.communicate()
             poll = process.poll()
             ret = process.returncode
-            print(stdout.decode("utf-8"))
+            print(stderr.decode("utf-8"))
             if poll != None:
                 print('Error {} with code {}'.format(stderr,ret))
         except Exception as e:
