@@ -205,7 +205,7 @@ if __name__ == '__main__':
             fps.stop()
         except Exception as e:
             print('[INFO] Fatal error. Closing application...')
-            sys.exit(1)
+            sys.exit()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
