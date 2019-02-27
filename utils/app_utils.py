@@ -75,8 +75,8 @@ class NonBlockingStreamReader:
 	def readline(self, timeout=None):
 		try:
 			return self._q.get(block = timeout is not None, timeout = timeout)
-	except Empty:
-		return None
+		except Empty:
+			return None
 
 
 class UnexpectedEndOfStream(Exception): pass
