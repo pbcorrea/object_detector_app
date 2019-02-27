@@ -53,29 +53,28 @@ class IPVideoStream:
 		# initialize the variable used to indicate if the thread should
 		# be stopped
 		self.stopped = False
-		# try connection until succesful
+		# try connection and send data until succesful
 		self.connected = False
 		while not self.connected:
 			try:
 				self.stream = requests.get(src, stream=True, timeout=10)
 				self.connected = True
 				print('[INFO] Connection succesful.')
+				bytes_ = bytes()
+				for chunk in self.stream.iter_content(chunk_size=1024):
+					bytes_+=chunk
+					a = bytes_.find(b'\xff\xd8')
+					b = bytes_.find(b'\xff\xd9')
+					if a!=-1 and b!=-1:
+						jpg = bytes_[a:b+2]
+						bytes_ = bytes_[b+2:]
+						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+						self.grabbed = self.frame is not None
+						break
 			except:
 				print('[INFO] Connection error. Retrying in 10 seconds...')
 				time.sleep(10)
 				pass
-		#read the first frame
-		bytes_ = bytes()
-		for chunk in self.stream.iter_content(chunk_size=1024):
-			bytes_+=chunk
-			a = bytes_.find(b'\xff\xd8')
-			b = bytes_.find(b'\xff\xd9')
-			if a!=-1 and b!=-1:
-				jpg = bytes_[a:b+2]
-				bytes_ = bytes_[b+2:]
-				self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
-				self.grabbed = self.frame is not None
-				break
 
 	def start(self):
 		# start the thread to read frames from the video stream
