@@ -5,7 +5,7 @@ import time
 import datetime
 import subprocess
 from subprocess import PIPE, CalledProcessError, check_call, Popen
-from app_utils import NonBlockingStreamReader as NBSR
+from utils.app_utils import NonBlockingStreamReader as NBSR
 
 cwd = os.getcwd()
 log_directory = os.path.join(cwd,'logs')
