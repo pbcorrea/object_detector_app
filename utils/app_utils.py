@@ -13,7 +13,7 @@ import time
 import requests
 from threading import Thread, Event, ThreadError
 from matplotlib import colors
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 class FPS:
 	def __init__(self):
