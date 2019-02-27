@@ -14,6 +14,8 @@ with open(log_file, "a+") as f:
         try:
             process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
+            output = process.stdout.readline()
+            print(output)
             poll = process.poll()
             ret = process.returncode
             print(stdout.decode("utf-8"))
