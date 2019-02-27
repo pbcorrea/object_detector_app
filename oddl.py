@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
-import cv2
-import time
+
 import argparse
+import cv2
+import json
+import time
+import os
+import sys
+
 import numpy as np
 import subprocess as sp
-import json
 import tensorflow as tf
 
 from queue import Queue
@@ -170,35 +173,39 @@ if __name__ == '__main__':
     alarm = False
     while True:
         try:
-            frame = cv2.imdecode(video_capture.read(), 1)
-        except:
-            frame =  np.zeros((height,width,3), np.uint8)
-            pass
-        input_q.put(frame)
-        raise_alarm(connection,alarm)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        if output_q.empty():
-            alarm = False
-            pass  # fill up queue
-        else:
-            alarm = False
-            data = output_q.get()
-            rec_points = data['rect_points']
-            class_names = data['class_names']
-            class_colors = data['class_colors']
-            for point, name, color in zip(rec_points, class_names, class_colors):
-                if 'person' in name[0]:
-                    display_rectangle(frame,point,height,width,text=False)
-                    alarm = alarm_condition(frame, point, height, width)
-                else:
-                    alarm = False
-                    pass
-            add_warning(frame,height,width)
-            cv2.imshow('ODDL - Fatality Prevention', frame)
-        fps.update()
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    fps.stop()
+            try:
+                frame = cv2.imdecode(video_capture.read(), 1)
+            except:
+                frame =  np.zeros((height,width,3), np.uint8)
+                pass
+            input_q.put(frame)
+            raise_alarm(connection,alarm)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            if output_q.empty():
+                alarm = False
+                pass  # fill up queue
+            else:
+                alarm = False
+                data = output_q.get()
+                rec_points = data['rect_points']
+                class_names = data['class_names']
+                class_colors = data['class_colors']
+                for point, name, color in zip(rec_points, class_names, class_colors):
+                    if 'person' in name[0]:
+                        display_rectangle(frame,point,height,width,text=False)
+                        alarm = alarm_condition(frame, point, height, width)
+                    else:
+                        alarm = False
+                        pass
+                add_warning(frame,height,width)
+                cv2.imshow('ODDL - Fatality Prevention', frame)
+            fps.update()
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            fps.stop()
+        except Exception as e:
+            print('[INFO] Fatal error. Closing application...')
+            sys.exit(1)
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
