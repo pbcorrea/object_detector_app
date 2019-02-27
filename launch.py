@@ -12,10 +12,10 @@ log_file = os.path.join(log_directory,'error_logs.txt')
 with open(log_file, "a+") as f:
     while True:
         try:
-            process = Popen(['python','oddl.py'], stdout=PIPE, stderr=PIPE)
+            process = Popen(['python','oddl.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
             output = process.stdout.readline()
-            print(output)
+            print(output.decode("utf-8"))
             poll = process.poll()
             ret = process.returncode
             print(stdout.decode("utf-8"))
