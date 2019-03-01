@@ -37,10 +37,12 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
-def raise_alarm(connection, alarm):
+def raise_alarm(frame, connection, alarm, ip, text):
+    alarm_request_ip = 'http://10.23.170.23/control/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if alarm:
         try:
+            cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
             connection.write_single_coil(0,1)
         except:
             pass
@@ -120,8 +122,9 @@ def alarm_condition(frame, point, height, width):
         text = 'ALARM'
         return True
     else:
+        text = ''
         return False
-    cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
+
 
 def display_rectangle(frame,point,height,width,text=False):
         mid_x = (point['xmax']+point['xmin'])/2
