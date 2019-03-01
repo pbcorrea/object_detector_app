@@ -192,6 +192,8 @@ if __name__ == '__main__':
             break
     else:
         print('[INFO] Closing...')
+        video_capture.stop()
+        cv2.destroyAllWindows()
         sys.exit(1)
         #print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
 
