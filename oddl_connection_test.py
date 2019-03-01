@@ -161,7 +161,7 @@ if __name__ == '__main__':
     video_capture = IPVideoStream(src=stream_ip).start()
     fps = FPS().start()
     time = 0
-    while time<11:
+    while time<100:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
         font = cv2.FONT_HERSHEY_DUPLEX
@@ -186,10 +186,7 @@ if __name__ == '__main__':
                 add_warning(frame,height,width)
             except:
                 pass
-            if args.stream_out:
-                print('Streaming elsewhere!')
-            else:
-                cv2.imshow('Video', frame)
+            cv2.imshow('Video', frame)
         fps.update()
         time+=1
         if cv2.waitKey(1) & 0xFF == ord('q'):
