@@ -198,14 +198,13 @@ if __name__ == '__main__':
             else:
                 cv2.imshow('Video', frame)
         fps.update()
-        t+=1
+            t+=1
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
     else:
         print('[INFO] Closing...')
         sys.exit(1)
         #print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
