@@ -198,7 +198,7 @@ if __name__ == '__main__':
             else:
                 cv2.imshow('Video', frame)
         fps.update()
-            t+=1
+        t+=1
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     else:
