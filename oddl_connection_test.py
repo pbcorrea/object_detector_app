@@ -151,8 +151,8 @@ if __name__ == '__main__':
     connection.debug(False)
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
-    height = 480
-    width = 640
+    height = 600
+    width = 800
     for i in range(1):
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
@@ -174,10 +174,8 @@ if __name__ == '__main__':
             class_colors = data['class_colors']
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
-                    print('Point:{:.2f},{:.2f}'.format(point['xmin'],point['xmax']))
                     display_rectangle(frame,point,height,width,text=False)
                     if alarm_condition(frame, point):
-                        print('\a')
                         #os.system('say "warning"')
                 else:
                     pass
@@ -194,7 +192,7 @@ if __name__ == '__main__':
         print('[INFO] Closing...')
         video_capture.stop()
         cv2.destroyAllWindows()
-        sys.exit(1)
+        sys.exit(33)
         #print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
 
     fps.stop()

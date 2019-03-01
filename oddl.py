@@ -200,13 +200,14 @@ if __name__ == '__main__':
                 add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
             print('[INFO] Closing application ...')
-            sys.exit(1)
             fps.update()
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             fps.stop()
-        except:
-            print('[INFO] Fatal error. Closing application...')
+        except Exception as e:
+            print('[INFO] Fatal error: {}\n Closing application...'.format(e))
+            video_capture.stop()
+            cv2.destroyAllWindows()
             sys.exit()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
