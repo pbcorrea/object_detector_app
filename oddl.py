@@ -45,7 +45,7 @@ def raise_alarm(frame, connection, alarm):
             text = 'ALARM'
             cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
             connection.write_single_coil(0,1)
-            #requests.get(alarm_request_ip)
+            requests.get(alarm_request_ip)
         except:
             pass
     else:
