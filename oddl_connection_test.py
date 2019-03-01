@@ -176,6 +176,7 @@ if __name__ == '__main__':
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
                     if alarm_condition(frame, point):
+                        print('Alarm')
                         #os.system('say "warning"')
                 else:
                     pass
