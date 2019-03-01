@@ -15,7 +15,7 @@ with open(log_file, "a+") as f:
             process = Popen(['python','oddl_connection_test.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
             stdout, stderr = process.communicate()
             #poll = process.poll()
-            #ret = process.returncode
+            ret = process.returncode
             #while poll == None:
             #    try:
             #        print(stdout.decode("utf-8"))
