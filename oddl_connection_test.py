@@ -175,7 +175,7 @@ if __name__ == '__main__':
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
-                    if alarm_condition(frame, point):
+                    if alarm_condition(frame, point, height, width):
                         print('Alarm')
                         #os.system('say "warning"')
                 else:
