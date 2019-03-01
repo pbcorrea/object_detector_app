@@ -145,17 +145,17 @@ def display_rectangle(frame,point,height,width,text=False):
 
 if __name__ == '__main__':
     filtered_classes = ['person','car','bus','truck']
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-strin', '--stream-input', dest="stream_in", action='store', type=str, default=None)
-    parser.add_argument('-src', '--source', dest='video_source', type=int,
-                        default=0, help='Device index of the camera.')
-    parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=1280, help='Width of the frames in the video stream.')
-    parser.add_argument('-ht', '--height', dest='height', type=int,
-                        default=480, help='Height of the frames in the video stream.')
-    parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
-    args = parser.parse_args()
-
+    height = 600
+    width = 800
+    size = str(width)+'x'+str(height)
+    quality = "20"
+    fps = "15.0"
+    stream_ip=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
+    +size+"&quality="+quality+"&fps="+fps+"&camera=left")
+    modbus_ip = '192.168.127.254'
+    modbus_port = '502'
+    connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
+    connection.debug(False)
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
     height = 480
@@ -174,7 +174,7 @@ if __name__ == '__main__':
                                       width=args.width,
                                       height=args.height).start()
     fps = FPS().start()
-    while True:
+    while t<11:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
         font = cv2.FONT_HERSHEY_DUPLEX
@@ -205,7 +205,10 @@ if __name__ == '__main__':
             else:
                 cv2.imshow('Video', frame)
         fps.update()
-
+            t+=1
+    else:
+        print('[INFO] Closing...')
+        sys.exit(1)
         #print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
