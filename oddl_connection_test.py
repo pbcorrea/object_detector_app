@@ -176,7 +176,6 @@ if __name__ == '__main__':
                 if 'person' in name[0]:
                     print('Point:{:.2f},{:.2f}'.format(point['xmin'],point['xmax']))
                     display_rectangle(frame,point,height,width,text=False)
-                    print('[INFO] time elapsed: {} s'.format(time.time()-t))
                     if alarm_condition(frame, point):
                         print('\a')
                         #os.system('say "warning"')
