@@ -114,13 +114,14 @@ def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
-        cv2.putText(frame, 'WARNING', (100,50),font, 1.5, (0,0,255), 2)
+        text = 'WARNING'
         return True
     elif point['ymax']>y_threshold_alarm:
-        cv2.putText(frame, 'ALARM', (100,50),font, 1.5, (0,0,255), 2)
+        text = 'ALARM'
         return True
     else:
         return False
+    cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
 
 def display_rectangle(frame,point,height,width,text=False):
         mid_x = (point['xmax']+point['xmin'])/2
