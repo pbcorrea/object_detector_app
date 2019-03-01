@@ -200,6 +200,7 @@ if __name__ == '__main__':
                 add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
             print('[INFO] Closing application ...')
+            sys.exit(1)
             fps.update()
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
