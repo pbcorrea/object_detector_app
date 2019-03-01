@@ -160,14 +160,14 @@ if __name__ == '__main__':
 
     video_capture = IPVideoStream(src=stream_ip).start()
     fps = FPS().start()
-    while t<11:
+    time = 0
+    while time<11:
         frame = cv2.imdecode(video_capture.read(), 1)
         input_q.put(frame)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             pass  # fill up queue
         else:
-            t = time.time()
             data = output_q.get()
             rec_points = data['rect_points']
             class_names = data['class_names']
