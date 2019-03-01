@@ -203,7 +203,7 @@ if __name__ == '__main__':
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             fps.stop()
-        except Exception as e:
+        except:
             print('[INFO] Fatal error. Closing application...')
             sys.exit()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))

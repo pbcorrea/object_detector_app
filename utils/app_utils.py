@@ -73,6 +73,7 @@ class IPVideoStream:
 						break
 			except:
 				print('[INFO] Connection error. Retrying in 10 seconds...')
+				self.connected = False
 				time.sleep(10)
 				pass
 
