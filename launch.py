@@ -23,7 +23,7 @@ with open(log_file, "a+") as f:
             #        pass
             #if poll != None:
             print(stdout.decode("utf-8"))
-            print('Error {} with code {}'.format(stderr,ret))
+            print('Error: {}. Exit with code {}'.format(stderr,ret))
         except Exception as e:
             f.write('{}. Failure to execute. Error:\t{}\n'.format(datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),str(e)))
             pass
