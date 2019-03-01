@@ -198,7 +198,7 @@ if __name__ == '__main__':
             else:
                 cv2.imshow('Video', frame)
         fps.update()
-            t+=1
+        t+=1
     else:
         print('[INFO] Closing...')
         sys.exit(1)
