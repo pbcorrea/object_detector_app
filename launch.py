@@ -12,7 +12,7 @@ log_file = os.path.join(log_directory,'error_logs.txt')
 with open(log_file, "a+") as f:
     while True:
         try:
-            process = Popen(['python','oddl_connection_test.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            process = Popen(['python','oddl.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
             stdout, stderr = process.communicate()
             #poll = process.poll()
             ret = process.returncode
