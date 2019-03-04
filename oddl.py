@@ -42,8 +42,6 @@ def raise_alarm(frame, connection, alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if alarm:
         try:
-            text = 'ALARM'
-            cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
             connection.write_single_coil(0,1)
             #requests.get(alarm_request_ip)
         except:
@@ -118,10 +116,12 @@ def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
-        text = 'WARNING'
-        return True
+        text = 'ALARM'
+        cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
+        return False
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARM'
+        cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
         return True
     else:
         text = ''
