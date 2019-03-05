@@ -102,9 +102,9 @@ def worker(input_q, output_q):
         frame = input_q.get()
         try:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            output_q.put(detect_objects(frame_rgb, sess, detection_graph))
         except:
             pass
-        output_q.put(detect_objects(frame_rgb, sess, detection_graph))
     fps.stop()
     sess.close()
 
@@ -179,11 +179,10 @@ if __name__ == '__main__':
     alarm = False
     while True:
         try:
-            try:
-                frame = cv2.imdecode(video_capture.read(), 1)
-            except:
-                frame =  np.zeros((height,width,3), np.uint8)
-                pass
+            frame = cv2.imdecode(video_capture.read(), 1)
+        except:
+            frame =  np.zeros((height,width,3), np.uint8)
+        try:
             input_q.put(frame)
             raise_alarm(frame,connection,alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
