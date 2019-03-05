@@ -178,7 +178,9 @@ if __name__ == '__main__':
     cv2.useOptimized()
     fps = FPS().start()
     alarm = False
+    alarm_request_ip = 'http://10.23.170.23/control/control/rcontrol?action=sound&soundfile=Alarm'
     while True:
+        requests.get(alarm_request_ip)
         try:
             frame = cv2.imdecode(video_capture.read(), 1)
         except:
