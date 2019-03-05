@@ -116,7 +116,7 @@ def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
-        text = 'ALARM'
+        text = 'WARNING'
         cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
         return False
     elif point['ymax']>y_threshold_alarm:
@@ -177,7 +177,9 @@ if __name__ == '__main__':
     cv2.useOptimized()
     fps = FPS().start()
     alarm = False
+    alarm_request_ip = 'http://10.23.170.23/control/control/rcontrol?action=sound&soundfile=Alarm'
     while True:
+        requests.get(alarm_request_ip)
         try:
             frame = cv2.imdecode(video_capture.read(), 1)
         except:
