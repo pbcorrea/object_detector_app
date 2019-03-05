@@ -117,8 +117,10 @@ class IPVideoStream:
 				print('ThreadError')
 				self.stopped = True
 			except Exception as e:
-				print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
-				pass
+				while self.stream.status_code != 200:
+					time.sleep(5)
+					print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
+					self.stream = requests.get(src, stream=True, timeout=10)
 
 	def read(self):
 		# return the frame most recently read

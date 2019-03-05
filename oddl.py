@@ -38,12 +38,12 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
 def raise_alarm(frame, connection, alarm):
-    #alarm_request_ip = 'http://10.23.170.23/control/control/rcontrol?action=sound&soundfile=Alarm'
+    alarm_request_ip = 'http://10.23.170.23/control/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if alarm:
         try:
             connection.write_single_coil(0,1)
-            #requests.get(alarm_request_ip)
+            requests.get(alarm_request_ip)
         except:
             pass
     else:
