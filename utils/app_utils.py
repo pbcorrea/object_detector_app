@@ -12,6 +12,7 @@ import numpy
 import time
 import requests
 import socket
+import system
 from threading import Thread, Event, ThreadError
 from matplotlib import colors
 
@@ -105,14 +106,16 @@ class IPVideoStream:
 							self.grabbed = self.frame is not None
 							break
 				else:
+					print('Camera disconnected. Status:\t{}'.format(self.stream.status_code))
 					try:
 						self.stream = requests.get(src, stream=True, timeout=10)
 					except:
+						print('Couldn\'t reconnect. Closing application...')
 						pass
 			except ThreadError:
 				print('ThreadError')
 				self.stopped = True
-			except error as e:
+			except Exception as e:
 				print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
 				pass
 
