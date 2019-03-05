@@ -104,14 +104,16 @@ class IPVideoStream:
 							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
 							self.grabbed = self.frame is not None
 							break
+				else:
+					try:
+						self.stream = requests.get(src, stream=True, timeout=10)
+					except:
+						pass
 			except ThreadError:
 				print('ThreadError')
 				self.stopped = True
-			except socket.timeout:
-				print('[INFO] Socket error. Retrying connection...')
-				pass
-			except requests.exceptions.ConnectionError:
-				print('[INFO] Connection error. Retrying connection...')
+			except error as e:
+				print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
 				pass
 
 	def read(self):
