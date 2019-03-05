@@ -12,7 +12,7 @@ import numpy
 import time
 import requests
 import socket
-import system
+import sys
 from threading import Thread, Event, ThreadError
 from matplotlib import colors
 
@@ -111,6 +111,7 @@ class IPVideoStream:
 						self.stream = requests.get(src, stream=True, timeout=10)
 					except:
 						print('Couldn\'t reconnect. Closing application...')
+						sys.exit(128)
 						pass
 			except ThreadError:
 				print('ThreadError')
