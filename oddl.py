@@ -167,7 +167,7 @@ if __name__ == '__main__':
     modbus_port = '502'
     connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
     connection.debug(False)
-    input_q = Queue(1)  # fps is better if queue is higher but then more lags
+    input_q = Queue(3)  # fps is better if queue is higher but then more lags
     output_q = Queue()
     for i in range(1):
         t = Thread(target=worker, args=(input_q, output_q))

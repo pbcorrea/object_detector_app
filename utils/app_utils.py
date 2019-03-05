@@ -11,6 +11,7 @@ import json
 import numpy
 import time
 import requests
+import socket
 from threading import Thread, Event, ThreadError
 from matplotlib import colors
 
@@ -71,11 +72,12 @@ class IPVideoStream:
 						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
 						self.grabbed = self.frame is not None
 						break
-			except:
+			except requests.exceptions.ConnectionError:
 				print('[INFO] Connection error. Retrying in 10 seconds...')
 				self.connected = False
 				time.sleep(10)
 				pass
+
 
 	def start(self):
 		# start the thread to read frames from the video stream
@@ -86,7 +88,7 @@ class IPVideoStream:
 		# keep looping infinitely until the thread is stopped
 		# if the thread indicator variable is set, stop the thread
 		bytes_ = bytes()
-		while True:
+		while self.connected == True:
 			if self.stopped:
 				return
 			try:
@@ -103,6 +105,19 @@ class IPVideoStream:
 			except ThreadError:
 				print('ThreadError')
 				self.stopped = True
+			except socket.timeout:
+				print('[INFO] Socket error. Retrying in 10 seconds...')
+				self.connected = False
+				time.sleep(10)
+				self.stream = requests.get(src, stream=True, timeout=10)
+				self.connected = True
+			except requests.exceptions.ConnectionError:
+				print('[INFO] Connection error. Retrying in 10 seconds...')
+				self.connected = False
+				time.sleep(10)
+				self.stream = requests.get(src, stream=True, timeout=10)
+				self.connected = True
+				pass
 
 	def read(self):
 		# return the frame most recently read
