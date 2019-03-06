@@ -38,13 +38,14 @@ category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'
  4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
  8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
 
-def raise_alarm(frame, connection, alarm):
+def raise_alarm(frame, connection, sound_alarm, connection_alarm):
     alarm_request_ip = 'http://10.23.170.23/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
-    if alarm:
+    if sound_alarm:
         try:
             connection.write_single_coil(0,1)
-            requests.get(alarm_request_ip)
+            if connection_alarm:
+                requests.get(alarm_request_ip)
         except:
             pass
     else:
@@ -190,7 +191,7 @@ if __name__ == '__main__':
             frame =  np.zeros((height,width,3), np.uint8)
         try:
             input_q.put(frame)
-            raise_alarm(frame,connection,alarm)
+            raise_alarm(frame,connection,sound_alarm, connection_alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
                 sound_alarm,connection_alarm = False
