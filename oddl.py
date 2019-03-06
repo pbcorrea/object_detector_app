@@ -184,7 +184,8 @@ if __name__ == '__main__':
     video_capture = IPVideoStream(src=stream_ip).start()
     cv2.useOptimized()
     fps = FPS().start()
-    sound_alarm,connection_alarm = False
+    sound_alarm = False
+    connection_alarm = False
     while True:
         try:
             frame = cv2.imdecode(video_capture.read(), 1)
@@ -196,10 +197,12 @@ if __name__ == '__main__':
             raise_alarm(frame,connection,sound_alarm, connection_alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
-                sound_alarm,connection_alarm = False
+                sound_alarm = False
+                connection_alarm = False
                 pass  # fill up queue
             else:
-                sound_alarm,connection_alarm = False
+                sound_alarm = False
+                connection_alarm = False
                 data = output_q.get()
                 rec_points = data['rect_points']
                 class_names = data['class_names']
@@ -209,7 +212,8 @@ if __name__ == '__main__':
                         display_rectangle(frame,point,height,width,text=False)
                         sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
                     else:
-                        sound_alarm,connection_alarm = False
+                        sound_alarm = False
+                        connection_alarm = False
                         pass
                 add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
