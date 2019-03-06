@@ -119,14 +119,18 @@ def alarm_condition(frame, point, height, width):
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'WARNING'
         cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
-        return False
+        sound_alarm = True
+        connection_alarm = False
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARM'
         cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
-        return True
+        sound_alarm = True
+        connection_alarm = True
     else:
         text = ''
-        return False
+        sound_alarm = False
+        connection_alarm = False
+    return sound_alarm, connection_alarm
 
 
 def display_rectangle(frame,point,height,width,text=False):
@@ -177,7 +181,7 @@ if __name__ == '__main__':
     video_capture = IPVideoStream(src=stream_ip).start()
     cv2.useOptimized()
     fps = FPS().start()
-    alarm = False
+    sound_alarm,connection_alarm = False
     while True:
         try:
             frame = cv2.imdecode(video_capture.read(), 1)
@@ -189,10 +193,10 @@ if __name__ == '__main__':
             raise_alarm(frame,connection,alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
-                alarm = False
+                sound_alarm,connection_alarm = False
                 pass  # fill up queue
             else:
-                alarm = False
+                sound_alarm,connection_alarm = False
                 data = output_q.get()
                 rec_points = data['rect_points']
                 class_names = data['class_names']
@@ -200,9 +204,9 @@ if __name__ == '__main__':
                 for point, name, color in zip(rec_points, class_names, class_colors):
                     if 'person' in name[0]:
                         display_rectangle(frame,point,height,width,text=False)
-                        alarm = alarm_condition(frame, point, height, width)
+                        sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
                     else:
-                        alarm = False
+                        sound_alarm,connection_alarm = False
                         pass
                 add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
