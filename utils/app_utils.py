@@ -105,22 +105,13 @@ class IPVideoStream:
 							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
 							self.grabbed = self.frame is not None
 							break
-				else: #Check connection
-					print('Camera disconnected. Status:\t{}'.format(self.stream.status_code))
-					try:
-						self.stream = requests.get(src, stream=True, timeout=10)
-					except:
-						print('Couldn\'t reconnect.')
-						sys.exit(3)
-						pass
 			except ThreadError:
 				print('ThreadError')
 				self.stopped = True
-			except Exception as e:
-				while self.stream.status_code != 200:
-					print('Couldn\'t reconnect.')
-					sys.exit(4)
-					#time.sleep(5)
+			except:
+				print('Couldn\'t reconnect.')
+				sys.exit(4)
+				#time.sleep(5)
 					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
 					#self.stream = requests.get(src, stream=True, timeout=10)
 
