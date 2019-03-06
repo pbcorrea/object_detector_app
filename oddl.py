@@ -43,13 +43,15 @@ def raise_alarm(frame, connection, sound_alarm, connection_alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if sound_alarm:
         try:
-            connection.write_single_coil(0,1)
+            #requests.get(alarm_request_ip)
+            connection.write_single_coil(1,1)
             if connection_alarm:
-                requests.get(alarm_request_ip)
+                connection.write_single_coil(0,1)
         except:
             pass
     else:
         try:
+            connection.write_single_coil(1,0)
             connection.write_single_coil(0,0)
         except:
             pass
