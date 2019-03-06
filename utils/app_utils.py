@@ -110,7 +110,7 @@ class IPVideoStream:
 				self.stopped = True
 			except:
 				print('Couldn\'t reconnect.')
-				sys.exit(4)
+				print('Connection status code:\t{}'.format(self.stream.status_code))
 				#time.sleep(5)
 					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
 					#self.stream = requests.get(src, stream=True, timeout=10)
