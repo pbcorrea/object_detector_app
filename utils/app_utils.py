@@ -90,11 +90,11 @@ class IPVideoStream:
 		# keep looping infinitely until the thread is stopped
 		# if the thread indicator variable is set, stop the thread
 		bytes_ = bytes()
-		while True:
+		while True:# Camera connected(?)
 			if self.stopped:
 				return
 			try:
-				if self.stream.status_code == 200:
+				if self.stream.status_code == 200:#Check connection
 					for chunk in self.stream.iter_content(chunk_size=1024):
 						bytes_+=chunk
 						a = bytes_.find(b'\xff\xd8')
@@ -105,22 +105,24 @@ class IPVideoStream:
 							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
 							self.grabbed = self.frame is not None
 							break
-				else:
+				else: #Check connection
 					print('Camera disconnected. Status:\t{}'.format(self.stream.status_code))
 					try:
 						self.stream = requests.get(src, stream=True, timeout=10)
 					except:
-						print('Couldn\'t reconnect. Closing application...')
-						sys.exit(128)
+						print('Couldn\'t reconnect.')
+						sys.exit(3)
 						pass
 			except ThreadError:
 				print('ThreadError')
 				self.stopped = True
 			except Exception as e:
 				while self.stream.status_code != 200:
-					time.sleep(5)
-					print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
-					self.stream = requests.get(src, stream=True, timeout=10)
+					print('Couldn\'t reconnect.')
+					sys.exit(4)
+					#time.sleep(5)
+					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
+					#self.stream = requests.get(src, stream=True, timeout=10)
 
 	def read(self):
 		# return the frame most recently read

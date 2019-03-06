@@ -210,10 +210,12 @@ if __name__ == '__main__':
                 break
             fps.stop()
         except Exception as e:
-            print('[INFO] Fatal error: {}\n Closing application...'.format(e))
+            print('Error in main loop')
             video_capture.stop()
             cv2.destroyAllWindows()
-            sys.exit()
+            sys.exit(1)
+            #print('[INFO] Fatal error: {}\n Closing application...'.format(e))
+            #sys.exit()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
