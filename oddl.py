@@ -182,6 +182,7 @@ if __name__ == '__main__':
         try:
             frame = cv2.imdecode(video_capture.read(), 1)
         except:
+            print('Couldn\'t recieve new frame')
             frame =  np.zeros((height,width,3), np.uint8)
         try:
             input_q.put(frame)
