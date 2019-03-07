@@ -228,6 +228,7 @@ if __name__ == '__main__':
             fps.stop()
         except Exception as e:
             print('Error in main loop:\t{}'.format(e))
+            print(frame)
             video_capture.stop()
             cv2.destroyAllWindows()
             sys.exit(1)
