@@ -111,7 +111,6 @@ class IPVideoStream:
 				print('ThreadError')
 				self.stopped = True
 			except:
-				print('Couldn\'t reconnect.')
 				self.connected = False
 				os._exit
 				print('Connection status code:\t{}'.format(self.stream.status_code))

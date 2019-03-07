@@ -112,9 +112,11 @@ def worker(input_q, output_q):
     fps.stop()
     sess.close()
 
-def add_warning(frame, height, width):
-    cv2.line(frame, (0,int(0.5*height)), (int(width),int(0.5*height)), (0,255,255))
-    cv2.line(frame, (0,int(0.75*height)), (int(width),int(0.75*height)), (0,0,255))
+def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
+    yellow_line = 0.5
+    red_line = 0.75
+    cv2.line(frame, (0,int(yellow_line*height)), (int(width),int(yellow_line*height)), (0,255,255))
+    cv2.line(frame, (0,int(red_line*height)), (int(width),int(red_line*height)), (0,0,255))
 
 def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
