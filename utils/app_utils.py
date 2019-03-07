@@ -95,6 +95,7 @@ class IPVideoStream:
 			if self.stopped:
 				return
 			try:
+				print('Connection status code:\t{}'.format(self.stream.status_code))
 				if self.stream.status_code == 200:#Check connection
 					for chunk in self.stream.iter_content(chunk_size=1024):
 						bytes_+=chunk
