@@ -206,9 +206,9 @@ if __name__ == '__main__':
                 connection_alarm = False
                 pass  # fill up queue
             else:
-                #sound_alarm = False
-                #connection_alarm = False
-                sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
+                sound_alarm = False
+                connection_alarm = False
+                #sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
                 data = output_q.get()
                 rec_points = data['rect_points']
                 class_names = data['class_names']
@@ -228,7 +228,7 @@ if __name__ == '__main__':
                 break
             fps.stop()
         except Exception as e:
-            print('Error in main loop')
+            print('Error in main loop:\t{}'.format(e))
             video_capture.stop()
             cv2.destroyAllWindows()
             sys.exit(1)
