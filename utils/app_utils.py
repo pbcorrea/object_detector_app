@@ -10,6 +10,7 @@ import subprocess as sp
 import json
 import numpy
 import time
+import os
 import requests
 import socket
 import sys
@@ -59,7 +60,7 @@ class IPVideoStream:
 		self.connected = False
 		while not self.connected:
 			try:
-				self.stream = requests.get(src, stream=True, timeout=10)
+				self.stream = requests.get(src, stream=True, timeout=10000)
 				if self.stream.status_code == 200:
 					self.connected = True
 					print('[INFO] Connection succesful.')
@@ -110,6 +111,8 @@ class IPVideoStream:
 				self.stopped = True
 			except:
 				print('Couldn\'t reconnect.')
+				self.connected = False
+				os._exit
 				print('Connection status code:\t{}'.format(self.stream.status_code))
 				#time.sleep(5)
 					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
