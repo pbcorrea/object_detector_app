@@ -43,10 +43,10 @@ def raise_alarm(frame, connection, sound_alarm, connection_alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if sound_alarm:
         try:
-            #requests.get(alarm_request_ip)
-            connection.write_single_coil(1,1)
+            #requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+            connection.write_single_coil(1,1) #CONEXION ALARMA MODBUS
             if connection_alarm:
-                connection.write_single_coil(0,1)
+                connection.write_single_coil(0,1) #CONEXION CORTA-CORRIENTE MODBUS
         except:
             pass
     else:
@@ -125,7 +125,7 @@ def alarm_condition(frame, point, height, width):
     cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (0,0,255))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'PRECAUCION'
-        cv2.putText(frame, text, (50,150),font, 1, (0,255,255), 2)
+        cv2.putText(frame, text, (50,180),font, 2, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = False
     elif point['ymax']>y_threshold_alarm:
