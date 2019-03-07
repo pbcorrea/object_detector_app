@@ -121,6 +121,8 @@ def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNE
 def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
+    cv2.line(frame, (0,int(y_threshold_warning*height)), (int(width),int(y_threshold_warning*height)), (0,255,255))
+    cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (0,0,255))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'WARNING'
         cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
@@ -217,7 +219,7 @@ if __name__ == '__main__':
                         sound_alarm = False
                         connection_alarm = False
                         pass
-                add_warning(frame,height,width)
+                #add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
             fps.update()
             if cv2.waitKey(1) & 0xFF == ord('q'):
