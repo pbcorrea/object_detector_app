@@ -113,8 +113,8 @@ def worker(input_q, output_q):
     sess.close()
 
 def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
-    yellow_line = 0.5
-    red_line = 0.75
+    yellow_line = 0.3
+    red_line = 0.8
     cv2.line(frame, (0,int(yellow_line*height)), (int(width),int(yellow_line*height)), (0,255,255))
     cv2.line(frame, (0,int(red_line*height)), (int(width),int(red_line*height)), (0,0,255))
 
