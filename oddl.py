@@ -125,18 +125,19 @@ def alarm_condition(frame, point, height, width):
     cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (0,0,255))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'WARNING'
-        cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
+        #cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = False
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARM'
-        cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
+        #cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = True
     else:
         text = ''
         sound_alarm = False
         connection_alarm = False
+    cv2.putText(frame, text, (100,50),font, 1.5, (0,0,255), 2)
     return sound_alarm, connection_alarm
 
 
@@ -205,8 +206,9 @@ if __name__ == '__main__':
                 connection_alarm = False
                 pass  # fill up queue
             else:
-                sound_alarm = False
-                connection_alarm = False
+                #sound_alarm = False
+                #connection_alarm = False
+                sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
                 data = output_q.get()
                 rec_points = data['rect_points']
                 class_names = data['class_names']
