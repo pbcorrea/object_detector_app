@@ -43,7 +43,7 @@ def raise_alarm(frame, connection, sound_alarm, connection_alarm):
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if sound_alarm:
         try:
-            requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+            #requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
             connection.write_single_coil(1,1) #CONEXION ALARMA MODBUS
             if connection_alarm:
                 connection.write_single_coil(0,1) #CONEXION CORTA-CORRIENTE MODBUS

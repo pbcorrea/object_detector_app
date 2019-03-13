@@ -55,7 +55,7 @@ class IPVideoStream:
 		# from the stream
 		# initialize the variable used to indicate if the thread should
 		# be stopped
-		self.stopped = False
+		self.stopped = False 
 		# try connection and send data until succesful
 		self.connected = False
 		while not self.connected:
@@ -81,6 +81,13 @@ class IPVideoStream:
 				time.sleep(10)
 				pass
 
+	def check_connection(url):
+	    try:
+	        _ = requests.get(url, timeout=60)
+	        return True
+	    except requests.ConnectionError:
+	        print("Connection timed out")
+	    return False
 
 	def start(self):
 		# start the thread to read frames from the video stream
@@ -91,11 +98,11 @@ class IPVideoStream:
 		# keep looping infinitely until the thread is stopped
 		# if the thread indicator variable is set, stop the thread
 		bytes_ = bytes()
-		while True:# Camera connected(?)
+		while self.connected:# Camera connected(?)
 			if self.stopped:
 				return
 			try:
-				#print('Connection status code:\t{}'.format(self.stream.status_code))
+				# print('Connection status code:\t{}'.format(self.stream.status_code))
 				if self.stream.status_code == 200:#Check connection
 					for chunk in self.stream.iter_content(chunk_size=1024):
 						bytes_+=chunk
@@ -114,7 +121,18 @@ class IPVideoStream:
 				self.connected = False
 				os._exit
 				print('Connection status code:\t{}'.format(self.stream.status_code))
-				#time.sleep(5)
+				while self.connected == False: # Añadir timer (?)
+					self.frame = numpy.random.randint(,size=(255,255,3),dtype=numpy.uint8)
+					cv2.putText(self.frame, 'SIN SEÑAL', (50,180),cv2.FONT_HERSHEY_DUPLEX, 2, (0,0,255), 2)
+					self.grabbed = self.frame is not None
+					try:
+						#reconnect
+						check_connection(src)
+						time.sleep(5)
+						self.connected = True
+					except:
+						pass
+					#time.sleep(5)
 					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
 					#self.stream = requests.get(src, stream=True, timeout=10)
 
