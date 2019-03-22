@@ -168,37 +168,38 @@ if __name__ == '__main__':
                         default=600, help='Height of the frames in the video stream.')
     parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
     args = parser.parse_args()
-    height = 600
-    width = 800
+    height = 720
+    width = 1280
     size = str(width)+'x'+str(height)
     quality = "20"
-    fps = "15.0"
-    stream_ip=("http://10.23.170.23/control/faststream.jpg?stream=full&preview&previewsize="
+    fps = "25.0"
+    stream_ip=("http://10.23.183.143/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     modbus_ip = '192.168.127.254'
     modbus_port = '502'
     connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
     connection.debug(False)
-    input_q = Queue(3)  # fps is better if queue is higher but then more lags
+    input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
+
     for i in range(1):
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
         t.start()
+
+
+    print(stream_ip)
     video_capture = IPVideoStream(src=stream_ip).start()
     cv2.useOptimized()
     fps = FPS().start()
     sound_alarm = False
     connection_alarm = False
     while True:
-        try:
-            frame = cv2.imdecode(video_capture.read(), 1)
-        except:
-            print('Couldn\'t recieve new frame')
-            frame =  np.zeros((height,width,3), np.uint8)
+        
+        frame = cv2.imdecode(video_capture.read(), 1)
         try:
             input_q.put(frame)
-            raise_alarm(frame,connection,sound_alarm, connection_alarm)
+            #raise_alarm(frame,connection,sound_alarm, connection_alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
                 sound_alarm = False
@@ -224,7 +225,7 @@ if __name__ == '__main__':
                 cv2.imshow('ODDL - Fatality Prevention', frame)
             fps.update()
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                break 
             fps.stop()
         except Exception as e:
             print('Error in main loop:\t{}'.format(e))
@@ -239,4 +240,4 @@ if __name__ == '__main__':
 
     video_capture.stop()
     cv2.destroyAllWindows()
-    connection.write_single_coil(0,0)
+    #connection.write_single_coil(0,0)

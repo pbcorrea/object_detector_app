@@ -98,44 +98,25 @@ class IPVideoStream:
 		# keep looping infinitely until the thread is stopped
 		# if the thread indicator variable is set, stop the thread
 		bytes_ = bytes()
-		while self.connected:# Camera connected(?)
-			if self.stopped:
-				return
-			try:
-				# print('Connection status code:\t{}'.format(self.stream.status_code))
-				if self.stream.status_code == 200:#Check connection
-					for chunk in self.stream.iter_content(chunk_size=1024):
-						bytes_+=chunk
-						a = bytes_.find(b'\xff\xd8')
-						b = bytes_.find(b'\xff\xd9')
-						if a!=-1 and b!=-1:
-							jpg = bytes_[a:b+2]
-							bytes_ = bytes_[b+2:]
-							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
-							self.grabbed = self.frame is not None
-							break
-			except ThreadError:
-				print('ThreadError')
-				self.stopped = True
-			except:
-				self.connected = False
-				os._exit
-				print('Connection status code:\t{}'.format(self.stream.status_code))
-				while self.connected == False: # Añadir timer (?)
-					self.frame = numpy.random.randint(,size=(255,255,3),dtype=numpy.uint8)
-					cv2.putText(self.frame, 'SIN SEÑAL', (50,180),cv2.FONT_HERSHEY_DUPLEX, 2, (0,0,255), 2)
-					self.grabbed = self.frame is not None
-					try:
-						#reconnect
-						check_connection(src)
-						time.sleep(5)
-						self.connected = True
-					except:
-						pass
-					#time.sleep(5)
-					#print('[INFO] Connection error \t{}.\t Retrying connection...'.format(e))
-					#self.stream = requests.get(src, stream=True, timeout=10)
+		try:
+			while True:# Camera connected(?)
+				if self.stopped:
+					return
+				for chunk in self.stream.iter_content(chunk_size=1024):
+					bytes_+=chunk
+					a = bytes_.find(b'\xff\xd8')
+					b = bytes_.find(b'\xff\xd9')
+					if a!=-1 and b!=-1:
+						jpg = bytes_[a:b+2]
+						bytes_ = bytes_[b+2:]
+						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+						self.grabbed = self.frame is not None
+						break
+		except ThreadError:
+			print('ThreadError')
+			self.stopped = True
 
+		
 	def read(self):
 		# return the frame most recently read
 		return self.frame
