@@ -40,23 +40,28 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
                                                             use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-def raise_alarm(frame, connection, sound_alarm, connection_alarm):
-    alarm_request_ip = 'http://10.23.170.23/control/rcontrol?action=sound&soundfile=Alarm'
+def raise_alarm(frame, connection, sound_alarm, connection_alarm, alarm_counter):
+    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if sound_alarm:
         try:
-            #requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-            connection.write_single_coil(1,1) #CONEXION ALARMA MODBUS
+            connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
             if connection_alarm:
-                connection.write_single_coil(0,1) #CONEXION CORTA-CORRIENTE MODBUS
+                connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
         except:
             pass
-    else:
-        try:
-            connection.write_single_coil(1,0)
-            connection.write_single_coil(0,0)
-        except:
-            pass
+        if alarm_counter % 35 == 0:
+            requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+        if alarm_counter % 100 == 0:
+            print('cortando alarma')
+            connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
+            connection.write_single_coil(2,0)
+    #else:
+     #   try:
+      #      connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
+       #     connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
+        #except:
+         #   pass
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -120,6 +125,7 @@ def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNE
 def alarm_condition(frame, point, height, width):
     y_threshold_warning = 0.5
     y_threshold_alarm = 0.75
+    alarm_count = 0
     cv2.line(frame, (0,int(y_threshold_warning*height)), (int(width),int(y_threshold_warning*height)), (0,255,255))
     cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (0,0,255))
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
@@ -127,16 +133,18 @@ def alarm_condition(frame, point, height, width):
         cv2.putText(frame, text, (50,180),font, 2, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = False
+        alarm_count+=1
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARMA'
         cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = True
+        alarm_count+=1
     else:
         text = ''
         sound_alarm = False
         connection_alarm = False
-    return sound_alarm, connection_alarm
+    return sound_alarm, connection_alarm, alarm_count
 
 
 def display_rectangle(frame,point,height,width,text=False):
@@ -190,12 +198,22 @@ if __name__ == '__main__':
     cv2.useOptimized()
     fps = FPS().start()
     sound_alarm = False
-    connection_alarm = False
-    while True:   
-        frame = cv2.imdecode(video_capture.read(), 1)
+    connection_alarm = False    
+    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+    alarm_count = 0
+    alarm_counter = 0  
+    while True:
+        try:    
+            if video_capture.read().shape[0]<1:
+                frame = cv2.imdecode(np.zeros((80000,)), 1)
+            else:
+                frame = cv2.imdecode(video_capture.read(), 1)
+        except:
+            frame = np.zeros((1280,720,3))
         try:
+            #print(alarm_counter)
             input_q.put(frame)
-            #raise_alarm(frame,connection,sound_alarm, connection_alarm)
+            raise_alarm(frame,connection,sound_alarm, connection_alarm,alarm_counter)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
                 sound_alarm = False
@@ -211,9 +229,9 @@ if __name__ == '__main__':
                 class_colors = data['class_colors']
                 for point, name, color in zip(rec_points, class_names, class_colors):
                     if 'person' in name[0]:
-                        print(name[0])
                         display_rectangle(frame,point,height,width,text=False)
-                        sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
+                        sound_alarm, connection_alarm,alarm_count = alarm_condition(frame, point, height, width)
+                        alarm_counter+=alarm_count
                     elif 'car' in name[0]:
                         print(name[0])
                         display_rectangle(frame,point,height,width,text=False)
@@ -234,7 +252,7 @@ if __name__ == '__main__':
                 break 
             fps.stop()
         except Exception as e:
-            print('Error in main loop:\t{}'.format(e))
+            print('Error in main loop:\t{}\n'.format(e))
             print(frame)
             video_capture.stop()
             cv2.destroyAllWindows()
@@ -246,4 +264,4 @@ if __name__ == '__main__':
 
     video_capture.stop()
     cv2.destroyAllWindows()
-    #connection.write_single_coil(0,0)
+    connection.write_single_coil(2,0)
