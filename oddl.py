@@ -25,8 +25,8 @@ CWD_PATH = os.getcwd()
 
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-#MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017' Original model
-MODEL_NAME = 'ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03'
+MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017' 
+#MODEL_NAME = 'ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03'
 PATH_TO_CKPT = os.path.join(CWD_PATH, 'object_detection', MODEL_NAME, 'frozen_inference_graph.pb')
 
 # List of the strings that is used to add correct label for each box.
@@ -40,28 +40,23 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
                                                             use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-def raise_alarm(frame, connection, sound_alarm, connection_alarm, alarm_counter):
-    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+def raise_alarm(frame, connection, sound_alarm, connection_alarm):
+    alarm_request_ip = 'http://10.23.217.103/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
     if sound_alarm:
         try:
+            requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
             connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
             if connection_alarm:
                 connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
         except:
             pass
-        if alarm_counter % 35 == 0:
-            requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-        if alarm_counter % 100 == 0:
-            print('cortando alarma')
+    else:
+        try:
             connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
-            connection.write_single_coil(2,0)
-    #else:
-     #   try:
-      #      connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
-       #     connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
-        #except:
-         #   pass
+            connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
+        except:
+            pass
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -88,7 +83,7 @@ def detect_objects(image_np, sess, detection_graph):
         classes=np.squeeze(classes).astype(np.int32),
         scores=np.squeeze(scores),
         category_index=category_index,
-        min_score_thresh=.6
+        min_score_thresh=.5
     )
     return dict(rect_points=rect_points, class_names=class_names, class_colors=class_colors)
 
@@ -117,34 +112,28 @@ def worker(input_q, output_q):
     sess.close()
 
 def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
-    yellow_line = 0.3
-    red_line = 0.8
+    yellow_line = 0.25
+    red_line = 0.55
     cv2.line(frame, (0,int(yellow_line*height)), (int(width),int(yellow_line*height)), (0,255,255))
     cv2.line(frame, (0,int(red_line*height)), (int(width),int(red_line*height)), (0,0,255))
 
-def alarm_condition(frame, point, height, width):
-    y_threshold_warning = 0.5
-    y_threshold_alarm = 0.75
-    alarm_count = 0
-    cv2.line(frame, (0,int(y_threshold_warning*height)), (int(width),int(y_threshold_warning*height)), (0,255,255))
-    cv2.line(frame, (0,int(y_threshold_alarm*height)), (int(width),int(y_threshold_alarm*height)), (0,0,255))
+def alarm_condition(frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
+    y_threshold_warning = 0.25
+    y_threshold_alarm = 0.55
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'PRECAUCION'
-        cv2.putText(frame, text, (50,180),font, 2, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = False
-        alarm_count+=1
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARMA'
-        cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
         sound_alarm = True
         connection_alarm = True
-        alarm_count+=1
     else:
         text = ''
         sound_alarm = False
         connection_alarm = False
-    return sound_alarm, connection_alarm, alarm_count
+    cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
+    return sound_alarm, connection_alarm
 
 
 def display_rectangle(frame,point,height,width,text=False):
@@ -180,7 +169,7 @@ if __name__ == '__main__':
     size = str(width)+'x'+str(height)
     quality = "50"
     fps = "30.0"
-    stream_ip=("http://10.23.183.143/control/faststream.jpg?stream=full&preview&previewsize="
+    stream_ip=("http://10.23.217.103/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     modbus_ip = '192.168.127.254'
     modbus_port = '502'
@@ -199,9 +188,6 @@ if __name__ == '__main__':
     fps = FPS().start()
     sound_alarm = False
     connection_alarm = False    
-    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
-    alarm_count = 0
-    alarm_counter = 0  
     while True:
         try:    
             if video_capture.read().shape[0]<1:
@@ -210,10 +196,11 @@ if __name__ == '__main__':
                 frame = cv2.imdecode(video_capture.read(), 1)
         except:
             frame = np.zeros((1280,720,3))
+        if frame is None:
+            frame = np.zeros((1280,720,3))
         try:
-            #print(alarm_counter)
             input_q.put(frame)
-            raise_alarm(frame,connection,sound_alarm, connection_alarm,alarm_counter)
+            raise_alarm(frame,connection,sound_alarm, connection_alarm)
             font = cv2.FONT_HERSHEY_DUPLEX
             if output_q.empty():
                 sound_alarm = False
@@ -230,22 +217,21 @@ if __name__ == '__main__':
                 for point, name, color in zip(rec_points, class_names, class_colors):
                     if 'person' in name[0]:
                         display_rectangle(frame,point,height,width,text=False)
-                        sound_alarm, connection_alarm,alarm_count = alarm_condition(frame, point, height, width)
-                        alarm_counter+=alarm_count
-                    elif 'car' in name[0]:
-                        print(name[0])
-                        display_rectangle(frame,point,height,width,text=False)
-                    elif 'truck' in name[0]:
-                        print(name[0])
+                        sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
+                    #elif 'car' in name[0]:
+                     #   print(name[0])
+                      #  display_rectangle(frame,point,height,width,text=False)
+                    #elif 'truck' in name[0]:
+                     #   print(name[0])
                     #    display_rectangle(frame,point,height,width,text=False)
-                    elif 'bus' in name[0]:
-                        print(name[0])
+                    #elif 'bus' in name[0]:
+                     #   print(name[0])
                       #  display_rectangle(frame,point,height,width,text=False)
                     else:
                         sound_alarm = False
                         connection_alarm = False
                         pass
-                #add_warning(frame,height,width)
+                add_warning(frame,height,width)
                 cv2.imshow('ODDL - Fatality Prevention', frame)
             fps.update()
             if cv2.waitKey(1) & 0xFF == ord('q'):
