@@ -21,22 +21,24 @@ from pyModbusTCP.client import ModbusClient
 
 CWD_PATH = os.getcwd()
 
+
+
+
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
+#MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017' Original model
+MODEL_NAME = 'ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03'
 PATH_TO_CKPT = os.path.join(CWD_PATH, 'object_detection', MODEL_NAME, 'frozen_inference_graph.pb')
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = os.path.join(CWD_PATH, 'object_detection', 'data', 'mscoco_label_map.pbtxt')
 
+PATH_TO_LABELS = os.path.join(CWD_PATH, 'object_detection', 'data', 'mscoco_label_map.pbtxt')
 NUM_CLASSES = 90
 
 # Loading label map
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES,
                                                             use_display_name=True)
-category_index = {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'}, 3: {'id': 3, 'name': 'car'},
- 4: {'id': 4, 'name': 'motorcycle'}, 5: {'id': 5, 'name': 'airplane'}, 6: {'id': 6, 'name': 'bus'}, 7: {'id': 7, 'name': 'train'},
- 8: {'id': 8, 'name': 'truck'}, 9: {'id': 9, 'name': 'boat'}}
+category_index = label_map_util.create_category_index(categories)
 
 def raise_alarm(frame, connection, sound_alarm, connection_alarm):
     alarm_request_ip = 'http://10.23.170.23/control/rcontrol?action=sound&soundfile=Alarm'
@@ -75,16 +77,13 @@ def detect_objects(image_np, sess, detection_graph):
         [boxes, scores, classes, num_detections],
         feed_dict={image_tensor: image_np_expanded})
 
-    # Filter only the needed results
-    filtered_classes = ['person']
-
     # Visualization of the results of a detection.
     rect_points, class_names, class_colors = draw_boxes_and_labels(
         boxes=np.squeeze(boxes),
         classes=np.squeeze(classes).astype(np.int32),
         scores=np.squeeze(scores),
         category_index=category_index,
-        min_score_thresh=.5
+        min_score_thresh=.6
     )
     return dict(rect_points=rect_points, class_names=class_names, class_colors=class_colors)
 
@@ -157,7 +156,7 @@ def display_rectangle(frame,point,height,width,text=False):
             int(mid_y*height-15)),font, 0.5, (255,255,255), 2)
 
 if __name__ == '__main__':
-    filtered_classes = ['person']
+    filtered_classes = ['person','car',]
     parser = argparse.ArgumentParser()
     parser.add_argument('-strin', '--stream-input', dest="stream_in", action='store', type=str, default=None)
     parser.add_argument('-src', '--source', dest='video_source', type=int,
@@ -171,8 +170,8 @@ if __name__ == '__main__':
     height = 720
     width = 1280
     size = str(width)+'x'+str(height)
-    quality = "20"
-    fps = "25.0"
+    quality = "50"
+    fps = "30.0"
     stream_ip=("http://10.23.183.143/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     modbus_ip = '192.168.127.254'
@@ -187,15 +186,12 @@ if __name__ == '__main__':
         t.daemon = True
         t.start()
 
-
-    print(stream_ip)
     video_capture = IPVideoStream(src=stream_ip).start()
     cv2.useOptimized()
     fps = FPS().start()
     sound_alarm = False
     connection_alarm = False
-    while True:
-        
+    while True:   
         frame = cv2.imdecode(video_capture.read(), 1)
         try:
             input_q.put(frame)
@@ -215,8 +211,18 @@ if __name__ == '__main__':
                 class_colors = data['class_colors']
                 for point, name, color in zip(rec_points, class_names, class_colors):
                     if 'person' in name[0]:
+                        print(name[0])
                         display_rectangle(frame,point,height,width,text=False)
                         sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
+                    elif 'car' in name[0]:
+                        print(name[0])
+                        display_rectangle(frame,point,height,width,text=False)
+                    elif 'truck' in name[0]:
+                        print(name[0])
+                    #    display_rectangle(frame,point,height,width,text=False)
+                    elif 'bus' in name[0]:
+                        print(name[0])
+                      #  display_rectangle(frame,point,height,width,text=False)
                     else:
                         sound_alarm = False
                         connection_alarm = False
