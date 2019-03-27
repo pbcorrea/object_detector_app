@@ -13,16 +13,14 @@ import numpy as np
 import subprocess as sp
 import tensorflow as tf
 
-from queue import Queue
+from collections import deque
+from queue import Queue, LifoQueue
 from threading import Thread
 from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
 from object_detection.utils import label_map_util
 from pyModbusTCP.client import ModbusClient
 
 CWD_PATH = os.getcwd()
-
-
-
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017' 
@@ -40,23 +38,36 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
                                                             use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-def raise_alarm(frame, connection, sound_alarm, connection_alarm):
+def raise_alarm(connection, alarm_q):
     alarm_request_ip = 'http://10.23.217.103/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
-    if sound_alarm:
-        try:
-            requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-            connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
-            if connection_alarm:
-                connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
-        except:
+    t = 0
+    while True:
+        if alarm_q:
+            alarm = alarm_q.pop()
+            if alarm[0] == True:
+                print(t,alarm)
+                time.sleep(5)
+            else:
+                print(t,alarm)
+            t+=1
+            alarm_q.clear()
+        else:
             pass
-    else:
-        try:
-            connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
-            connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
-        except:
-            pass
+            #try:
+            #requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+            #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        #    if connection_alarm:
+            #    connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
+        #except:
+        #    pass
+    #else:
+        #try:
+            #connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
+            #connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
+        #except:
+         #   pass
+
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -87,6 +98,7 @@ def detect_objects(image_np, sess, detection_graph):
     )
     return dict(rect_points=rect_points, class_names=class_names, class_colors=class_colors)
 
+
 def worker(input_q, output_q):
     # Load a (frozen) Tensorflow model into memory.
     detection_graph = tf.Graph()
@@ -110,29 +122,28 @@ def worker(input_q, output_q):
     fps.stop()
     sess.close()
 
+
 def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
     yellow_line = 0.25
     red_line = 0.55
     cv2.line(frame, (0,int(yellow_line*height)), (int(width),int(yellow_line*height)), (0,255,255))
     cv2.line(frame, (0,int(red_line*height)), (int(width),int(red_line*height)), (0,0,255))
 
+
 def alarm_condition(frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
     y_threshold_warning = 0.25
     y_threshold_alarm = 0.55
     if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
         text = 'PRECAUCION'
-        sound_alarm = True
-        connection_alarm = False
+        alarm = [True, False]
     elif point['ymax']>y_threshold_alarm:
         text = 'ALARMA'
-        sound_alarm = True
-        connection_alarm = True
+        alarm = [True, True]
     else:
         text = ''
-        sound_alarm = False
-        connection_alarm = False
+        alarm = [False, False]
     cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
-    return sound_alarm, connection_alarm
+    return alarm
 
 
 def display_rectangle(frame,point,height,width,text=False):
@@ -166,77 +177,82 @@ if __name__ == '__main__':
     connection.debug(False)
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
-
+    alarm_q = deque(maxlen=5)
     for i in range(1):
         t = Thread(target=worker, args=(input_q, output_q))
         t.daemon = True
         t.start()
 
-    video_capture = IPVideoStream(src=stream_ip).start()
-    cv2.useOptimized()
-    fps = FPS().start()
-    sound_alarm = False
-    connection_alarm = False    
-    while True:
-        try:    
-            if video_capture.read().shape[0]<1:
-                frame = cv2.imdecode(np.zeros((80000,)), 1)
-            else:
-                frame = cv2.imdecode(video_capture.read(), 1)
-        except:
-            frame = np.zeros((1280,720,3))
-        if frame is None:
-            frame = np.zeros((1280,720,3))
-        try:
-            input_q.put(frame)
-            raise_alarm(frame,connection,sound_alarm, connection_alarm)
-            font = cv2.FONT_HERSHEY_DUPLEX
-            if output_q.empty():
-                sound_alarm = False
-                connection_alarm = False
-                pass  # fill up queue
-            else:
-                sound_alarm = False
-                connection_alarm = False
-                #sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
-                data = output_q.get()
-                rec_points = data['rect_points']
-                class_names = data['class_names']
-                class_colors = data['class_colors']
-                for point, name, color in zip(rec_points, class_names, class_colors):
-                    if 'person' in name[0]:
-                        display_rectangle(frame,point,height,width,text=False)
-                        sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
-                    #elif 'car' in name[0]:
-                     #   print(name[0])
-                      #  display_rectangle(frame,point,height,width,text=False)
-                    #elif 'truck' in name[0]:
-                     #   print(name[0])
-                    #    display_rectangle(frame,point,height,width,text=False)
-                    #elif 'bus' in name[0]:
-                     #   print(name[0])
-                      #  display_rectangle(frame,point,height,width,text=False)
-                    else:
-                        sound_alarm = False
-                        connection_alarm = False
-                        pass
-                add_warning(frame,height,width)
-                cv2.imshow('ODDL - Fatality Prevention', frame)
-            fps.update()
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break 
-            fps.stop()
-        except Exception as e:
-            print('Error in main loop:\t{}\n'.format(e))
-            print(frame)
-            video_capture.stop()
-            cv2.destroyAllWindows()
-            sys.exit(1)
-            #print('[INFO] Fatal error: {}\n Closing application...'.format(e))
-            #sys.exit()
-    print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
-    print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
+    alarm = [False, False]
+    frame = np.zeros((1280,720,3))
 
-    video_capture.stop()
-    cv2.destroyAllWindows()
-    connection.write_single_coil(2,0)
+    alarm_t = Thread(target=raise_alarm, args=(connection, alarm_q))
+    alarm_t.daemon = True
+    alarm_t.start()
+    #video_capture = IPVideoStream(src=stream_ip).start()
+    cv2.useOptimized()
+    fps = FPS().start()   
+    
+    while True:
+        cap = cv2.VideoCapture(0)
+        ret,frame = cap.read()
+        #try:    
+         #   if video_capture.read().shape[0]<1:
+          #      frame = cv2.imdecode(np.zeros((80000,)), 1)
+           # else:
+            #    frame = cv2.imdecode(video_capture.read(), 1)
+        #except:
+         #   frame = np.zeros((1280,720,3))
+        #if frame is None:
+         #   frame = np.zeros((1280,720,3))
+        #try:
+        input_q.put(frame)
+        #raise_alarm(frame,connection,sound_alarm, connection_alarm)
+        font = cv2.FONT_HERSHEY_DUPLEX
+        if output_q.empty():
+            alarm = [False, False]
+            pass  # fill up queue
+        else:
+            alarm = [False, False]
+            #sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
+            data = output_q.get()
+            rec_points = data['rect_points']
+            class_names = data['class_names']
+            class_colors = data['class_colors']
+            for point, name, color in zip(rec_points, class_names, class_colors):
+                if 'person' in name[0]:
+                    display_rectangle(frame,point,height,width,text=False)
+                    alarm = alarm_condition(frame, point, height, width)
+                #elif 'car' in name[0]:
+                #   print(name[0])
+                  # display_rectangle(frame,point,height,width,text=False)
+                #elif 'truck' in name[0]:
+                 #   print(name[0])
+                #    display_rectangle(frame,point,height,width,text=False)
+                #elif 'bus' in name[0]:
+                 #   print(name[0])
+                  #  display_rectangle(frame,point,height,width,text=False)
+                else:
+                    alarm = [False, False]
+                    pass
+            alarm_q.append(alarm)
+            add_warning(frame,height,width)
+            cv2.imshow('ODDL - Fatality Prevention', frame)
+        fps.update()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break 
+        fps.stop()
+    #except Exception as e:
+     #   print('Error in main loop:\t{}\n'.format(e))
+      #  print(frame)
+      #  video_capture.stop()
+      #  cv2.destroyAllWindows()
+      #  sys.exit(1)
+        #print('[INFO] Fatal error: {}\n Closing application...'.format(e))
+        #sys.exit()
+print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
+print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
+
+    #video_capture.stop()
+cv2.destroyAllWindows()
+#connection.write_single_coil(2,0)
