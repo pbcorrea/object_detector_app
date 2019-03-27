@@ -96,7 +96,6 @@ def worker(input_q, output_q):
             serialized_graph = fid.read()
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def, name='')
-
         sess = tf.Session(graph=detection_graph)
 
     fps = FPS().start()
@@ -154,16 +153,6 @@ def display_rectangle(frame,point,height,width,text=False):
 
 if __name__ == '__main__':
     filtered_classes = ['person','car',]
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-strin', '--stream-input', dest="stream_in", action='store', type=str, default=None)
-    parser.add_argument('-src', '--source', dest='video_source', type=int,
-                        default=0, help='Device index of the camera.')
-    parser.add_argument('-wd', '--width', dest='width', type=int,
-                        default=800, help='Width of the frames in the video stream.')
-    parser.add_argument('-ht', '--height', dest='height', type=int,
-                        default=600, help='Height of the frames in the video stream.')
-    parser.add_argument('-strout','--stream-output', dest="stream_out", help='The URL to send the livestreamed object detection to.')
-    args = parser.parse_args()
     height = 720
     width = 1280
     size = str(width)+'x'+str(height)
