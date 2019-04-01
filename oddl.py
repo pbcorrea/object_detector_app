@@ -47,7 +47,7 @@ def raise_alarm(connection, alarm_q):
             alarm = alarm_q.pop()
             if alarm[0] == True:
                 print(t,alarm)
-                time.sleep(5)
+                #time.sleep(5)
             else:
                 print(t,alarm)
             t+=1
@@ -123,12 +123,12 @@ def worker(input_q, output_q):
     sess.close()
 
 
-def add_warning(frame, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
+def add_warning(frame, height, width, text): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
     yellow_line = 0.25
     red_line = 0.55
     cv2.line(frame, (0,int(yellow_line*height)), (int(width),int(yellow_line*height)), (0,255,255))
     cv2.line(frame, (0,int(red_line*height)), (int(width),int(red_line*height)), (0,0,255))
-
+    cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
 
 def alarm_condition(frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
     y_threshold_warning = 0.25
@@ -142,8 +142,7 @@ def alarm_condition(frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PAR
     else:
         text = ''
         alarm = [False, False]
-    cv2.putText(frame, text, (50,100),font, 2, (0,0,255), 2)
-    return alarm
+    return alarm, text
 
 
 def display_rectangle(frame,point,height,width,text=False):
@@ -213,7 +212,6 @@ if __name__ == '__main__':
             alarm = [False, False]
             pass  # fill up queue
         else:
-            alarm = [False, False]
             #sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
             data = output_q.get()
             rec_points = data['rect_points']
@@ -222,7 +220,7 @@ if __name__ == '__main__':
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
-                    alarm = alarm_condition(frame, point, height, width)
+                    alarm, text = alarm_condition(frame, point, height, width)
                 #elif 'car' in name[0]:
                 #   print(name[0])
                   # display_rectangle(frame,point,height,width,text=False)
@@ -234,9 +232,10 @@ if __name__ == '__main__':
                   #  display_rectangle(frame,point,height,width,text=False)
                 else:
                     alarm = [False, False]
+                    text = ''
                     pass
             alarm_q.append(alarm)
-            add_warning(frame,height,width)
+            add_warning(frame,height,width,text)
             cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
         if cv2.waitKey(1) & 0xFF == ord('q'):
