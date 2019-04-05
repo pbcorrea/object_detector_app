@@ -18,6 +18,61 @@ from threading import Thread, Event, ThreadError
 from matplotlib import colors
 
 
+class Alarm:
+	def __init__(self):
+		self.alarm_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+		self.modbus_ip = '192.168.127.254'
+		self.modbus_port = '502'
+		self.connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
+		self.connection.debug(False)
+	
+	def condition(self,frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PARA LAS LÍNEAS DE ALARMA
+		self.threshold_warning = 0.25
+		self.threshold_alarm = 0.55
+		if point['ymax']>y_threshold_warning and point['ymax']<y_threshold_alarm:
+			self.text = 'PRECAUCION'
+			self.alarm = [True, False]
+		elif point['ymax']>y_threshold_alarm:
+			self.text = 'ALARMA'
+			self.alarm = [True, True]
+		else:
+			self.text = ''
+			self.alarm = [False, False]
+		return self.alarm, self.text
+
+	def activate(self):
+		if self.alarm[0] == True and self.alarm[1] == False:
+			print('Iniciando alarma 1:\t{}'.format(time.time()))
+			alarm_lock.acquire()
+			requests.get(self.alarm_ip) #CONEXION ALARMA CAMARA
+        	#connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+			time.sleep(2)
+			alarm_lock.release()
+			print('Terminando alarma 1:\t{}'.format(time.time()))
+		elif self.alarm[0] == True and self.alarm[1] == True:
+			print('Iniciando alarma 2:\t{}'.format(time.time()))
+			alarm_lock.acquire()
+			requests.get(self.alarm_ip) #CONEXION ALARMA CAMARA
+        	#connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        	#connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
+			time.sleep(2)
+			alarm_lock.release()
+			print('Terminando alarma 2:\t{}'.format(time.time()))  
+		else:
+			pass
+            #try:
+            
+        #    if connection_alarm:
+            #    connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
+        #except:
+        #    pass
+    #else:
+        #try:
+            #connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
+            #connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
+        #except:
+         #   pass
+
 class FPS:
 	def __init__(self):
 		# store the start time, end time, and total number of frames

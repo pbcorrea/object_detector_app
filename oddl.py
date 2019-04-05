@@ -13,7 +13,7 @@ import numpy as np
 import subprocess as sp
 import tensorflow as tf
 
-from collections import deque
+from datetime import datetime
 from queue import Queue, LifoQueue
 from threading import Thread, Lock
 from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
@@ -40,23 +40,24 @@ category_index = label_map_util.create_category_index(categories)
 
 def raise_alarm(connection, alarm):
     alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+    alarm_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if alarm[0] == True and alarm[1] == False:
-        print('Iniciando alarma 1:\t{}'.format(time.time()))
+        print('Iniciando alarma 1:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
         #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
         time.sleep(2)
         alarm_lock.release()
-        print('Terminando alarma 1:\t{}'.format(time.time()))
+        print('Terminando alarma 1:\t{}'.format(alarm_time))
     elif alarm[0] == True and alarm[1] == True:
-        print('Iniciando alarma 2:\t{}'.format(time.time()))
+        print('Iniciando alarma 2:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
         #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
         #connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
         time.sleep(2)
         alarm_lock.release()
-        print('Terminando alarma 2:\t{}'.format(time.time()))   
+        print('Terminando alarma 2:\t{}'.format(alarm_time))   
     else:
         #alarm_lock.release()
         pass
@@ -182,7 +183,6 @@ if __name__ == '__main__':
     alarm_lock = Lock()
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
-    alarm_q = deque(maxlen=5)
     t = Thread(target=worker, args=(input_q, output_q))
     t.daemon = True
     t.start()
