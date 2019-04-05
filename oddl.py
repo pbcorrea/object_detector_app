@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from collections import deque
 from queue import Queue, LifoQueue
-from threading import Thread
+from threading import Thread, Lock
 from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
 from object_detection.utils import label_map_util
 from pyModbusTCP.client import ModbusClient
@@ -38,25 +38,30 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
                                                             use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-def raise_alarm(connection, alarm_q):
-    alarm_request_ip = 'http://10.23.217.103/control/rcontrol?action=sound&soundfile=Alarm'
-    alarm_time = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())
-    t = 0
-    while True:
-        if alarm_q:
-            alarm = alarm_q.pop()
-            if alarm[0] == True:
-                print(t,alarm)
-                #time.sleep(5)
-            else:
-                print(t,alarm)
-            t+=1
-            alarm_q.clear()
-        else:
-            pass
+def raise_alarm(connection, alarm):
+    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+    if alarm[0] == True and alarm[1] == False:
+        print('Iniciando alarma 1:\t{}'.format(time.time()))
+        alarm_lock.acquire()
+        requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+        #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        time.sleep(2)
+        alarm_lock.release()
+        print('Terminando alarma 1:\t{}'.format(time.time()))
+    elif alarm[0] == True and alarm[1] == True:
+        print('Iniciando alarma 2:\t{}'.format(time.time()))
+        alarm_lock.acquire()
+        requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
+        #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        #connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
+        time.sleep(2)
+        alarm_lock.release()
+        print('Terminando alarma 2:\t{}'.format(time.time()))   
+    else:
+        #alarm_lock.release()
+        pass
             #try:
-            #requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-            #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+            
         #    if connection_alarm:
             #    connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
         #except:
@@ -168,51 +173,38 @@ if __name__ == '__main__':
     size = str(width)+'x'+str(height)
     quality = "50"
     fps = "30.0"
-    stream_ip=("http://10.23.217.103/control/faststream.jpg?stream=full&preview&previewsize="
+    stream_ip=("http://10.23.183.143/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     modbus_ip = '192.168.127.254'
     modbus_port = '502'
     connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
     connection.debug(False)
+    alarm_lock = Lock()
     input_q = Queue(1)  # fps is better if queue is higher but then more lags
     output_q = Queue()
     alarm_q = deque(maxlen=5)
-    for i in range(1):
-        t = Thread(target=worker, args=(input_q, output_q))
-        t.daemon = True
-        t.start()
-
+    t = Thread(target=worker, args=(input_q, output_q))
+    t.daemon = True
+    t.start()
+    text = ''
     alarm = [False, False]
-    frame = np.zeros((1280,720,3))
-
-    alarm_t = Thread(target=raise_alarm, args=(connection, alarm_q))
-    alarm_t.daemon = True
-    alarm_t.start()
-    #video_capture = IPVideoStream(src=stream_ip).start()
-    cv2.useOptimized()
-    fps = FPS().start()   
-    
+    frame = np.zeros((height,width,3))
+    video_capture = IPVideoStream(src=stream_ip).start()
+    fps = FPS().start() 
+    thread_list = [] 
     while True:
-        cap = cv2.VideoCapture(0)
-        ret,frame = cap.read()
-        #try:    
-         #   if video_capture.read().shape[0]<1:
-          #      frame = cv2.imdecode(np.zeros((80000,)), 1)
-           # else:
-            #    frame = cv2.imdecode(video_capture.read(), 1)
-        #except:
-         #   frame = np.zeros((1280,720,3))
-        #if frame is None:
-         #   frame = np.zeros((1280,720,3))
-        #try:
+        if video_capture.read().size:
+            frame = cv2.imdecode(video_capture.read(), 1)
+        else:
+            frame = cv2.imdecode(np.zeros((height,width,3)), 1)
         input_q.put(frame)
         #raise_alarm(frame,connection,sound_alarm, connection_alarm)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             alarm = [False, False]
+            text = ''
             pass  # fill up queue
         else:
-            #sound_alarm, connection_alarm = alarm_condition(frame, point, height, width)
             data = output_q.get()
             rec_points = data['rect_points']
             class_names = data['class_names']
@@ -221,6 +213,11 @@ if __name__ == '__main__':
                 if 'person' in name[0]:
                     display_rectangle(frame,point,height,width,text=False)
                     alarm, text = alarm_condition(frame, point, height, width)
+                    if not alarm_lock.locked():
+                        alarm_thread = Thread(target=raise_alarm,args=(connection,alarm))
+                        alarm_thread.daemon = True
+                        alarm_thread.start()
+                        thread_list.append(alarm_thread)
                 #elif 'car' in name[0]:
                 #   print(name[0])
                   # display_rectangle(frame,point,height,width,text=False)
@@ -234,7 +231,6 @@ if __name__ == '__main__':
                     alarm = [False, False]
                     text = ''
                     pass
-            alarm_q.append(alarm)
             add_warning(frame,height,width,text)
             cv2.imshow('ODDL - Fatality Prevention', frame)
         fps.update()
@@ -249,9 +245,10 @@ if __name__ == '__main__':
       #  sys.exit(1)
         #print('[INFO] Fatal error: {}\n Closing application...'.format(e))
         #sys.exit()
+
 print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
 print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
-    #video_capture.stop()
+video_capture.stop()
 cv2.destroyAllWindows()
 #connection.write_single_coil(2,0)
