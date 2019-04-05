@@ -51,4 +51,4 @@ if __name__ == '__main__':
     stream_ip=("http://10.23.217.103/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     #video_capture = IPVideoStream(src=stream_ip).start()
-    record('Video de prueba_1_hora',stream_ip,3600,test=True)
+    record('Video de prueba_1_hora',stream_ip,10000,test=True)
