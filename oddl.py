@@ -195,6 +195,7 @@ if __name__ == '__main__':
             text = ''
             pass  # fill up queue
         else:
+            text = ''
             data = output_q.get()
             rec_points = data['rect_points']
             class_names = data['class_names']
