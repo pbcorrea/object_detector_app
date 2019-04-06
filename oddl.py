@@ -39,7 +39,7 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 def raise_alarm(connection, alarm):
-    alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+    alarm_request_ip = 'http://10.23.221.252/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if alarm[0] == True and alarm[1] == False:
         print('[I] PRECAUCION:\t{}'.format(alarm_time))
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     size = str(width)+'x'+str(height)
     quality = "50"
     fps = "30.0"
-    stream_ip=("http://10.23.183.143/control/faststream.jpg?stream=full&preview&previewsize="
+    stream_ip=("http://10.23.221.252/control/faststream.jpg?stream=full&preview&previewsize="
     +size+"&quality="+quality+"&fps="+fps+"&camera=left")
     modbus_ip = '192.168.127.254'
     modbus_port = '502'
