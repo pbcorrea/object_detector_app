@@ -60,18 +60,7 @@ class Alarm:
 			print('Terminando alarma 2:\t{}'.format(time.time()))  
 		else:
 			pass
-            #try:
-            
-        #    if connection_alarm:
-            #    connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
-        #except:
-        #    pass
-    #else:
-        #try:
-            #connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
-            #connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
-        #except:
-         #   pass
+
 
 class FPS:
 	def __init__(self):

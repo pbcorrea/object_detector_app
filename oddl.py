@@ -42,38 +42,27 @@ def raise_alarm(connection, alarm):
     alarm_request_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
     alarm_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if alarm[0] == True and alarm[1] == False:
-        print('Iniciando alarma 1:\t{}'.format(alarm_time))
+        print('[I] PRECAUCION:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-        #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
-        time.sleep(2)
+        connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        time.sleep(2.7)
+        connection.write_single_coil(1,0) #CONEXION LUZ INTERNA MODBUS
         alarm_lock.release()
-        print('Terminando alarma 1:\t{}'.format(alarm_time))
+        print('[F] PRECAUCION:\t{}'.format(alarm_time))
     elif alarm[0] == True and alarm[1] == True:
-        print('Iniciando alarma 2:\t{}'.format(alarm_time))
+        print('[I] ALARMA:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-        #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
-        #connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
-        time.sleep(2)
+        connection.write_single_coil(1,1) #ABRIR CONEXION LUZ INTERNA MODBUS
+        connection.write_single_coil(2,1) #ABRIR CONEXION CORTA-CORRIENTE MODBUS
+        time.sleep(7)
+        connection.write_single_coil(1,0) #CERRAR CONEXION LUZ INTERNA MODBUS
+        connection.write_single_coil(2,0) #CERRAR CONEXION CORTA-CORRIENTE MODBUS
         alarm_lock.release()
-        print('Terminando alarma 2:\t{}'.format(alarm_time))   
+        print('[F] ALARMA:\t{}'.format(alarm_time))   
     else:
-        #alarm_lock.release()
         pass
-            #try:
-            
-        #    if connection_alarm:
-            #    connection.write_single_coil(2,1) #CONEXION CORTA-CORRIENTE MODBUS
-        #except:
-        #    pass
-    #else:
-        #try:
-            #connection.write_single_coil(1,0) #CORTAR LUZ INTERNA
-            #connection.write_single_coil(2,0)  #CORTAR CORTA-CORRIENTE
-        #except:
-         #   pass
-
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -151,7 +140,7 @@ def alarm_condition(frame, point, height, width): # CAMBIAR ACÁ LOS VALORES PAR
     return alarm, text
 
 
-def display_rectangle(frame,point,height,width,text=False):
+def display_rectangle(frame,point,height,width,name,text=False):
         mid_x = (point['xmax']+point['xmin'])/2
         mid_y = (point['ymax']+point['ymin'])/2
         width_aprox = round(point['xmax']-point['xmin'],1)
@@ -161,6 +150,8 @@ def display_rectangle(frame,point,height,width,text=False):
         cv2.rectangle(frame, (int(point['xmin'] * width), int(point['ymin'] * height)),
                   (int(point['xmin'] * width) + len(name[0]) * 6,
                    int(point['ymin'] * height) - 10), color, -1, cv2.LINE_AA)
+        cv2.putText(frame, name, (int(point['xmin'] * width), int(point['ymin'] * height)), font,
+                            0.3, (0, 0, 0), 1)
         if text:
             cv2.putText(frame, 'Height: {}'.format(height_aprox*height), (int(mid_x*width),
             int(mid_y*height+15)),font, 0.5, (255,255,255), 2)
@@ -198,7 +189,6 @@ if __name__ == '__main__':
         else:
             frame = cv2.imdecode(np.zeros((height,width,3)), 1)
         input_q.put(frame)
-        #raise_alarm(frame,connection,sound_alarm, connection_alarm)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             alarm = [False, False]
@@ -211,7 +201,7 @@ if __name__ == '__main__':
             class_colors = data['class_colors']
             for point, name, color in zip(rec_points, class_names, class_colors):
                 if 'person' in name[0]:
-                    display_rectangle(frame,point,height,width,text=False)
+                    display_rectangle(frame,point,height,width,name[0],text=False)
                     alarm, text = alarm_condition(frame, point, height, width)
                     if not alarm_lock.locked():
                         alarm_thread = Thread(target=raise_alarm,args=(connection,alarm))
@@ -237,14 +227,6 @@ if __name__ == '__main__':
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break 
         fps.stop()
-    #except Exception as e:
-     #   print('Error in main loop:\t{}\n'.format(e))
-      #  print(frame)
-      #  video_capture.stop()
-      #  cv2.destroyAllWindows()
-      #  sys.exit(1)
-        #print('[INFO] Fatal error: {}\n Closing application...'.format(e))
-        #sys.exit()
 
 print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
 print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
