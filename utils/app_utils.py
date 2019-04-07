@@ -153,14 +153,16 @@ class IPVideoStream:
 					if a!=-1 and b!=-1:
 						jpg = bytes_[a:b+2]
 						bytes_ = bytes_[b+2:]
-						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
-						self.grabbed = self.frame is not None
-						break
+						if jpg.size:
+							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+							self.grabbed = self.frame is not None
+							break
+						else:
+							pass
 		except ThreadError:
 			print('ThreadError')
 			self.stopped = True
 
-		
 	def read(self):
 		# return the frame most recently read
 		return self.frame
