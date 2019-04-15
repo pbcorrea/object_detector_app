@@ -1,4 +1,4 @@
-name: object-detection
+name: oddl
 channels: !!python/tuple
 - menpo
 - defaults

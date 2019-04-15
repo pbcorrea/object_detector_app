@@ -14,9 +14,9 @@ import subprocess as sp
 import tensorflow as tf
 
 from datetime import datetime
-from queue import Queue, LifoQueue
+from queue import Queue
 from threading import Thread, Lock
-from utils.app_utils import FPS, IPVideoStream, WebcamVideoStream, draw_boxes_and_labels
+from utils.app_utils import FPS, IPVideoStream, draw_boxes_and_labels
 from object_detection.utils import label_map_util
 from pyModbusTCP.client import ModbusClient
 
@@ -28,7 +28,6 @@ MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
 PATH_TO_CKPT = os.path.join(CWD_PATH, 'object_detection', MODEL_NAME, 'frozen_inference_graph.pb')
 
 # List of the strings that is used to add correct label for each box.
-
 PATH_TO_LABELS = os.path.join(CWD_PATH, 'object_detection', 'data', 'mscoco_label_map.pbtxt')
 NUM_CLASSES = 90
 
@@ -45,20 +44,20 @@ def raise_alarm(connection, alarm):
         print('[I] PRECAUCION:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-        connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
+        #connection.write_single_coil(1,1) #CONEXION LUZ INTERNA MODBUS
         time.sleep(2.7)
-        connection.write_single_coil(1,0) #CONEXION LUZ INTERNA MODBUS
+        #connection.write_single_coil(1,0) #CONEXION LUZ INTERNA MODBUS
         alarm_lock.release()
         print('[F] PRECAUCION:\t{}'.format(alarm_time))
     elif alarm[0] == True and alarm[1] == True:
         print('[I] ALARMA:\t{}'.format(alarm_time))
         alarm_lock.acquire()
         requests.get(alarm_request_ip) #CONEXION ALARMA CAMARA
-        connection.write_single_coil(1,1) #ABRIR CONEXION LUZ INTERNA MODBUS
-        connection.write_single_coil(2,1) #ABRIR CONEXION CORTA-CORRIENTE MODBUS
-        time.sleep(7)
-        connection.write_single_coil(1,0) #CERRAR CONEXION LUZ INTERNA MODBUS
-        connection.write_single_coil(2,0) #CERRAR CONEXION CORTA-CORRIENTE MODBUS
+        #connection.write_single_coil(1,1) #ABRIR CONEXION LUZ INTERNA MODBUS
+        #connection.write_single_coil(2,1) #ABRIR CONEXION CORTA-CORRIENTE MODBUS
+        time.sleep(2.7)
+        #connection.write_single_coil(1,0) #CERRAR CONEXION LUZ INTERNA MODBUS
+        #connection.write_single_coil(2,0) #CERRAR CONEXION CORTA-CORRIENTE MODBUS
         alarm_lock.release()
         print('[F] ALARMA:\t{}'.format(alarm_time))   
     else:
@@ -172,23 +171,25 @@ if __name__ == '__main__':
     connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
     connection.debug(False)
     alarm_lock = Lock()
-    input_q = Queue(1)  # fps is better if queue is higher but then more lags
+    input_q = Queue(1)  
     output_q = Queue()
     t = Thread(target=worker, args=(input_q, output_q))
     t.daemon = True
     t.start()
     text = ''
     alarm = [False, False]
-    frame = np.zeros((height,width,3))
     video_capture = IPVideoStream(src=stream_ip).start()
     fps = FPS().start() 
     thread_list = [] 
     while True:
-        if video_capture.read().size:
+        try:
             frame = cv2.imdecode(video_capture.read(), 1)
-        else:
-            frame = cv2.imdecode(np.zeros((height,width,3)), 1)
-        input_q.put(frame)
+            input_q.put(frame)
+        except:
+            print(video_capture.read().shape)
+            print(video_capture.read())
+            pass
+        #frame = cv2.imdecode(video_capture.read(), 1)
         font = cv2.FONT_HERSHEY_DUPLEX
         if output_q.empty():
             alarm = [False, False]

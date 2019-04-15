@@ -20,7 +20,7 @@ from matplotlib import colors
 
 class Alarm:
 	def __init__(self):
-		self.alarm_ip = 'http://10.23.183.143/control/rcontrol?action=sound&soundfile=Alarm'
+		self.alarm_ip = 'http://10.10.10.10/control/rcontrol?action=sound&soundfile=Alarm'
 		self.modbus_ip = '192.168.127.254'
 		self.modbus_port = '502'
 		self.connection = ModbusClient(host=modbus_ip, port=modbus_port, auto_open=True)
@@ -79,7 +79,7 @@ class FPS:
 		# stop the timer
 		self._end = datetime.datetime.now()
 
-	def update(self):
+	def update(self): 
 		# increment the total number of frames examined during the
 		# start and end intervals
 		self._numFrames += 1
@@ -117,6 +117,7 @@ class IPVideoStream:
 							jpg = bytes_[a:b+2]
 							bytes_ = bytes_[b+2:]
 							self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
+							print(self.frame.shape)
 							self.grabbed = self.frame is not None
 							break
 			except requests.exceptions.ConnectionError:
@@ -151,50 +152,21 @@ class IPVideoStream:
 					a = bytes_.find(b'\xff\xd8')
 					b = bytes_.find(b'\xff\xd9')
 					if a!=-1 and b!=-1:
-						jpg = bytes_[a:b+2]
+						frame_bytes = bytes_[a:b+2]
 						bytes_ = bytes_[b+2:]
-						self.frame = numpy.fromstring(jpg, dtype=numpy.uint8)
-						self.grabbed = self.frame is not None
+						jpg = numpy.fromstring(frame_bytes, dtype=numpy.uint8)
+						if jpg.size:
+							self.frame = jpg
+							self.grabbed = self.frame is not None
 							break
+						else:
+							self.frame = numpy.zeros(size=(1280,720,3))
+							print('Empty frame',frame_bytes)
+							pass
+						
 		except ThreadError:
 			print('ThreadError')
 			self.stopped = True
-
-	def read(self):
-		# return the frame most recently read
-		return self.frame
-
-	def stop(self):
-		# indicate that the thread should be stopped
-		self.stopped = True
-
-
-class WebcamVideoStream:
-	def __init__(self, src, width, height):
-		# initialize the video camera stream and read the first frame
-		# from the stream
-		self.stream = cv2.VideoCapture(src)
-		self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-		self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-		(self.grabbed, self.frame) = self.stream.read()
-
-		# initialize the variable used to indicate if the thread should
-		# be stopped
-		self.stopped = False
-
-	def start(self):
-		# start the thread to read frames from the video stream
-		Thread(target=self.update, args=()).start()
-		return self
-
-	def update(self):
-		# keep looping infinitely until the thread is stopped
-		while True:
-			# if the thread indicator variable is set, stop the thread
-			if self.stopped:
-				return
-			# otherwise, read the next frame from the stream
-			(self.grabbed, self.frame) = self.stream.read()
 
 	def read(self):
 		# return the frame most recently read
