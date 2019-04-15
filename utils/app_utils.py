@@ -160,7 +160,7 @@ class IPVideoStream:
 							self.grabbed = self.frame is not None
 							break
 						else:
-							self.frame = numpy.zeros(size=(1280,720,3))
+							self.frame = numpy.zeros(shape=(1280,720,3))
 							print('Empty frame',frame_bytes)
 							pass
 						

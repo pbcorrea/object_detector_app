@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-stream_ip=str('rtsp://admin:12345678@10.10.10.10/stream0/mobotix.h264')
+stream_ip=str('rtsp://admin:12345678@10.10.10.10/stream0/mobotix.mjpeg')
 
 while True:
     cap = cv2.VideoCapture(stream_ip)
